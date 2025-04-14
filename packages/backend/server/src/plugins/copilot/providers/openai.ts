@@ -193,7 +193,9 @@ export class OpenAIProvider extends CopilotProvider<OpenAIConfig> {
     options?: CopilotChatOptions;
   }) {
     if (!(await this.isModelAvailable(cond))) {
-      throw new CopilotPromptInvalid(`Model not available: ${cond}`);
+      throw new CopilotPromptInvalid(
+        `Model not available: ${JSON.stringify(cond)}`
+      );
     }
     if (Array.isArray(messages) && messages.length > 0) {
       if (

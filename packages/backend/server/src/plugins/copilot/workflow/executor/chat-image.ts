@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { ChatPrompt, PromptService } from '../../prompt';
 import {
+  CopilotCapability,
   CopilotChatOptions,
   CopilotProvider,
   CopilotProviderFactory,
@@ -48,7 +49,7 @@ export class CopilotChatImageExecutor extends AutoRegisteredWorkflowExecutor {
     const provider = await this.providerFactory.getProviderByModel(
       prompt.model
     );
-    if (provider && 'generateImages' in provider) {
+    if (provider && 'streamText' in provider) {
       return [data, prompt, provider];
     }
 
@@ -71,25 +72,26 @@ export class CopilotChatImageExecutor extends AutoRegisteredWorkflowExecutor {
 
     const finalMessage = prompt.finish(params);
     const config = { ...prompt.config, ...options };
+    const stream = provider.streamText(
+      { modelId: prompt.model, capability: CopilotCapability.Image },
+      finalMessage,
+      config
+    );
     if (paramKey) {
       // update params with custom key
-      const result = {
-        [paramKey]: await provider.text(
-          { modelId: prompt.model },
-          finalMessage,
-          config
-        ),
-      };
+
+      const params = [];
+      for await (const attachment of stream) {
+        params.push(attachment);
+      }
+
+      const result = { [paramKey]: params };
       yield {
         type: NodeExecuteState.Params,
         params: paramToucher?.(result) ?? result,
       };
     } else {
-      for await (const attachment of provider.streamText(
-        { modelId: prompt.model },
-        finalMessage,
-        config
-      )) {
+      for await (const attachment of stream) {
         yield { type: NodeExecuteState.Attachment, nodeId: id, attachment };
       }
     }

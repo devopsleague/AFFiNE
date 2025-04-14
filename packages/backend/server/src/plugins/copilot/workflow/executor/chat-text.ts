@@ -48,7 +48,7 @@ export class CopilotChatTextExecutor extends AutoRegisteredWorkflowExecutor {
     const provider = await this.providerFactory.getProviderByModel(
       prompt.model
     );
-    if (provider && 'generateText' in provider) {
+    if (provider && 'text' in provider) {
       return [data, prompt, provider];
     }
 
