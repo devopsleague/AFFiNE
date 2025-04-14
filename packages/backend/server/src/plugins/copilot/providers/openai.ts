@@ -324,6 +324,41 @@ export class OpenAIProvider extends CopilotProvider<OpenAIConfig> {
     await this.checkParams({ messages, cond });
     const model = this.selectModel(cond);
 
+    if (cond.capability === CopilotCapability.Image) {
+      metrics.ai
+        .counter('generate_images_stream_calls')
+        .add(1, { model: model.id });
+
+      const { content: prompt } = [...messages].pop() || {};
+      if (!prompt) throw new CopilotPromptInvalid('Prompt is required');
+
+      try {
+        const modelInstance = this.#instance.image(model.id);
+
+        const result = await generateImage({
+          model: modelInstance,
+          prompt,
+        });
+
+        const imageUrls = result.images.map(
+          image => `data:image/png;base64,${image.base64}`
+        );
+
+        for (const imageUrl of imageUrls) {
+          yield imageUrl;
+          if (options.signal?.aborted) {
+            break;
+          }
+        }
+        return;
+      } catch (e: any) {
+        metrics.ai
+          .counter('generate_images_errors')
+          .add(1, { model: model.id });
+        throw this.handleError(e, model.id, options);
+      }
+    }
+
     try {
       metrics.ai.counter('chat_text_stream_calls').add(1, { model: model.id });
       const [system, msgs] = await chatToGPTMessage(messages);
@@ -331,10 +366,8 @@ export class OpenAIProvider extends CopilotProvider<OpenAIConfig> {
       const modelInstance = options.webSearch
         ? this.#instance.responses(model.id)
         : this.#instance(model.id, {
-            structuredOutputs: Boolean(
-              'jsonMode' in options ? options.jsonMode : false
-            ),
-            user: 'user' in options ? options.user : undefined,
+            structuredOutputs: Boolean(options.jsonMode),
+            user: options.user,
           });
 
       const { fullStream } = streamText({
@@ -342,12 +375,10 @@ export class OpenAIProvider extends CopilotProvider<OpenAIConfig> {
         system,
         messages: msgs,
         tools: this.getToolUse(options),
-        frequencyPenalty:
-          ('frequencyPenalty' in options && options.frequencyPenalty) || 0,
-        presencePenalty:
-          ('presencePenalty' in options && options.presencePenalty) || 0,
-        temperature: ('temperature' in options && options.temperature) || 0,
-        maxTokens: ('maxTokens' in options && options.maxTokens) || 4096,
+        frequencyPenalty: options.frequencyPenalty || 0,
+        presencePenalty: options.presencePenalty || 0,
+        temperature: options.temperature || 0,
+        maxTokens: options.maxTokens || 4096,
         abortSignal: options.signal,
       });
 
@@ -411,58 +442,6 @@ export class OpenAIProvider extends CopilotProvider<OpenAIConfig> {
         .counter('generate_embedding_errors')
         .add(1, { model: model.id });
       throw this.handleError(e, model.id, options);
-    }
-  }
-
-  // ====== text to image ======
-  async generateImages(
-    cond: ModelConditions,
-    messages: PromptMessage[],
-    options: CopilotImageOptions = {}
-  ): Promise<Array<string>> {
-    const { content: prompt } = messages.pop() || {};
-    if (!prompt) throw new CopilotPromptInvalid('Prompt is required');
-
-    const model = this.selectModel(cond);
-
-    try {
-      metrics.ai.counter('generate_images_calls').add(1, { model: model.id });
-
-      const modelInstance = this.#instance.image(model.id);
-
-      const result = await generateImage({
-        model: modelInstance,
-        prompt,
-      });
-
-      return result.images.map(
-        image => `data:image/png;base64,${image.base64}`
-      );
-    } catch (e: any) {
-      metrics.ai.counter('generate_images_errors').add(1, { model: model.id });
-      throw this.handleError(e, model.id, options);
-    }
-  }
-
-  async *generateImagesStream(
-    cond: ModelConditions,
-    messages: PromptMessage[],
-    options: CopilotImageOptions = {}
-  ): AsyncIterable<string> {
-    const model = this.selectModel(cond);
-    try {
-      metrics.ai
-        .counter('generate_images_stream_calls')
-        .add(1, { model: model.id });
-      const ret = await this.generateImages(cond, messages, options);
-      for (const url of ret) {
-        yield url;
-      }
-    } catch (e) {
-      metrics.ai
-        .counter('generate_images_stream_errors')
-        .add(1, { model: model.id });
-      throw e;
     }
   }
 }
