@@ -7,9 +7,9 @@ import type { OpenAIProvider } from './openai';
 import type { PerplexityProvider } from './perplexity';
 import type { CopilotProvider } from './provider';
 import {
-  CapabilityToCopilotProvider,
   CopilotCapability,
   CopilotProviderType,
+  ModelInputType,
 } from './types';
 
 type TypedProvider = {
@@ -31,64 +31,66 @@ export class CopilotProviderFactory {
     return this.#providers.get(provider) as TypedProvider[P];
   }
 
-  async getProviderByCapability<C extends CopilotCapability>(
-    capability: C,
+  async getProviderByCapability(
+    capability: CopilotCapability,
+    inputType: ModelInputType = ModelInputType.Text,
     filter: {
       model?: string;
       prefer?: CopilotProviderType;
     } = {}
-  ): Promise<CapabilityToCopilotProvider[C] | null> {
+  ): Promise<CopilotProvider | null> {
     this.logger.debug(
       `Resolving copilot provider for capability: ${capability}`
     );
     let candidate: CopilotProvider | null = null;
     for (const [type, provider] of this.#providers.entries()) {
-      // we firstly match by capability
-      if (provider.capabilities.includes(capability)) {
-        // use the first match if no filter provided
-        if (!filter.model && !filter.prefer) {
-          candidate = provider;
-          this.logger.debug(`Copilot provider candidate found: ${type}`);
-          break;
-        }
+      if (filter.prefer && filter.prefer !== type) {
+        continue;
+      }
 
-        if (
-          (!filter.model || (await provider.isModelAvailable(filter.model))) &&
-          (!filter.prefer || filter.prefer === type)
-        ) {
-          candidate = provider;
-          this.logger.debug(`Copilot provider candidate found: ${type}`);
-          break;
-        }
+      if (!filter.model) {
+        candidate = provider;
+        this.logger.debug(`Copilot provider candidate found: ${type}`);
+        break;
+      }
+
+      if (
+        await provider.isModelAvailable({
+          model: filter.model,
+          capability,
+          inputType,
+        })
+      ) {
+        candidate = provider;
+        this.logger.debug(`Copilot provider candidate found: ${type}`);
+        break;
       }
     }
 
-    return candidate as CapabilityToCopilotProvider[C] | null;
+    return candidate;
   }
 
-  async getProviderByModel<C extends CopilotCapability>(
+  async getProviderByModel(
     model: string,
     filter: {
       prefer?: CopilotProviderType;
     } = {}
-  ): Promise<CapabilityToCopilotProvider[C] | null> {
+  ): Promise<CopilotProvider | null> {
     this.logger.debug(`Resolving copilot provider for model: ${model}`);
 
     let candidate: CopilotProvider | null = null;
     for (const [type, provider] of this.#providers.entries()) {
-      // we firstly match by model
-      if (await provider.isModelAvailable(model)) {
+      if (filter.prefer && filter.prefer !== type) {
+        continue;
+      }
+
+      if (await provider.isModelAvailable({ model })) {
         candidate = provider;
         this.logger.debug(`Copilot provider candidate found: ${type}`);
-
-        // then we match by prefer filter
-        if (!filter.prefer || filter.prefer === type) {
-          candidate = provider;
-        }
       }
     }
 
-    return candidate as CapabilityToCopilotProvider[C] | null;
+    return candidate;
   }
 
   register(provider: CopilotProvider) {
