@@ -541,8 +541,9 @@ for (const { name, promptName, messages, verifier, type } of actions) {
         const provider = (await factory.getProviderByModel(prompt.model))!;
         t.truthy(provider, 'should have provider');
         await retry(`action: ${promptName}`, t, async t => {
-          if (type === 'text' && 'generateText' in provider) {
-            const result = await provider.generateText(
+          if (type === 'text' && 'text' in provider) {
+            const result = await provider.text(
+              { modelId: prompt.model },
               [
                 ...prompt.finish(
                   messages.reduce(
@@ -553,25 +554,21 @@ for (const { name, promptName, messages, verifier, type } of actions) {
                 ),
                 ...messages,
               ],
-              prompt.model,
               Object.assign({}, prompt.config)
             );
             t.truthy(result, 'should return result');
             verifier?.(t, result);
-          } else if (type === 'image' && 'generateImages' in provider) {
-            const result = await provider.generateImages(
-              [
-                ...prompt.finish(
-                  messages.reduce(
-                    // @ts-expect-error
-                    (acc, m) => Object.assign(acc, m.params),
-                    {}
-                  )
-                ),
-                ...messages,
-              ],
-              prompt.model
-            );
+          } else if (type === 'image' && 'streamText' in provider) {
+            const result = await provider.text({ modelId: prompt.model }, [
+              ...prompt.finish(
+                messages.reduce(
+                  // @ts-expect-error
+                  (acc, m) => Object.assign(acc, m.params),
+                  {}
+                )
+              ),
+              ...messages,
+            ]);
             t.truthy(result.length, 'should return result');
             for (const r of result) {
               verifier?.(t, r);

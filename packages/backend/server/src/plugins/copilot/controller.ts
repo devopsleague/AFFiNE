@@ -519,7 +519,13 @@ export class CopilotController implements BeforeApplicationShutdown {
       this.ongoingStreamCount$.next(this.ongoingStreamCount$.value + 1);
       const source$ = from(
         provider.streamText(
-          { modelId: session.model },
+          {
+            modelId: session.model,
+            capability: CopilotCapability.Image,
+            inputType: hasAttachment
+              ? ModelInputType.Image
+              : ModelInputType.Text,
+          },
           session.finish(params),
           {
             ...session.config.promptConfig,
