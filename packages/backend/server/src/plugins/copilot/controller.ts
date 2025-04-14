@@ -47,8 +47,9 @@ import {
 import { CurrentUser, Public } from '../../core/auth';
 import {
   CopilotCapability,
+  CopilotProvider,
   CopilotProviderFactory,
-  CopilotTextProvider,
+  ModelInputType,
 } from './providers';
 import { ChatSession, ChatSessionService } from './session';
 import { CopilotStorage } from './storage';
@@ -117,20 +118,22 @@ export class CopilotController implements BeforeApplicationShutdown {
     userId: string,
     sessionId: string,
     messageId?: string
-  ): Promise<CopilotTextProvider> {
+  ): Promise<CopilotProvider> {
     const { hasAttachment, model } = await this.checkRequest(
       userId,
       sessionId,
       messageId
     );
     let provider = await this.provider.getProviderByCapability(
-      CopilotCapability.TextToText,
+      CopilotCapability.Text,
+      ModelInputType.Text,
       { model }
     );
     // fallback to image to text if text to text is not available
     if (!provider && hasAttachment) {
       provider = await this.provider.getProviderByCapability(
-        CopilotCapability.ImageToText,
+        CopilotCapability.Text,
+        ModelInputType.Image,
         { model }
       );
     }
@@ -253,11 +256,15 @@ export class CopilotController implements BeforeApplicationShutdown {
       const finalMessage = session.finish(params);
       info.finalMessage = finalMessage.filter(m => m.role !== 'system');
 
-      const content = await provider.generateText(finalMessage, session.model, {
-        ...session.config.promptConfig,
-        signal: this.getSignal(req),
-        user: user.id,
-      });
+      const content = await provider.text(
+        { modelId: session.model },
+        finalMessage,
+        {
+          ...session.config.promptConfig,
+          signal: this.getSignal(req),
+          user: user.id,
+        }
+      );
 
       session.push({
         role: 'assistant',
@@ -318,7 +325,7 @@ export class CopilotController implements BeforeApplicationShutdown {
       info.finalMessage = finalMessage.filter(m => m.role !== 'system');
 
       const source$ = from(
-        provider.generateTextStream(finalMessage, session.model, {
+        provider.streamText({ modelId: session.model }, finalMessage, {
           ...session.config.promptConfig,
           signal: this.getSignal(req),
           user: user.id,
@@ -480,9 +487,8 @@ export class CopilotController implements BeforeApplicationShutdown {
         messageId
       );
       const provider = await this.provider.getProviderByCapability(
-        hasAttachment
-          ? CopilotCapability.ImageToImage
-          : CopilotCapability.TextToImage,
+        CopilotCapability.Image,
+        hasAttachment ? ModelInputType.Image : ModelInputType.Text,
         { model }
       );
       if (!provider) {
@@ -512,12 +518,16 @@ export class CopilotController implements BeforeApplicationShutdown {
       );
       this.ongoingStreamCount$.next(this.ongoingStreamCount$.value + 1);
       const source$ = from(
-        provider.generateImagesStream(session.finish(params), session.model, {
-          ...session.config.promptConfig,
-          seed: this.parseNumber(params.seed),
-          signal: this.getSignal(req),
-          user: user.id,
-        })
+        provider.streamText(
+          { modelId: session.model },
+          session.finish(params),
+          {
+            ...session.config.promptConfig,
+            seed: this.parseNumber(params.seed),
+            signal: this.getSignal(req),
+            user: user.id,
+          }
+        )
       ).pipe(
         mergeMap(handleRemoteLink),
         connect(shared$ =>

@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { ChatPrompt, PromptService } from '../../prompt';
 import {
   CopilotChatOptions,
-  CopilotImageProvider,
+  CopilotProvider,
   CopilotProviderFactory,
 } from '../../providers';
 import { WorkflowNodeData, WorkflowNodeType } from '../types';
@@ -25,7 +25,7 @@ export class CopilotChatImageExecutor extends AutoRegisteredWorkflowExecutor {
     [
       WorkflowNodeData & { nodeType: WorkflowNodeType.Basic },
       ChatPrompt,
-      CopilotImageProvider,
+      CopilotProvider,
     ]
   > {
     if (data.nodeType !== WorkflowNodeType.Basic) {
@@ -74,9 +74,9 @@ export class CopilotChatImageExecutor extends AutoRegisteredWorkflowExecutor {
     if (paramKey) {
       // update params with custom key
       const result = {
-        [paramKey]: await provider.generateImages(
+        [paramKey]: await provider.text(
+          { modelId: prompt.model },
           finalMessage,
-          prompt.model,
           config
         ),
       };
@@ -85,9 +85,9 @@ export class CopilotChatImageExecutor extends AutoRegisteredWorkflowExecutor {
         params: paramToucher?.(result) ?? result,
       };
     } else {
-      for await (const attachment of provider.generateImagesStream(
+      for await (const attachment of provider.streamText(
+        { modelId: prompt.model },
         finalMessage,
-        prompt.model,
         config
       )) {
         yield { type: NodeExecuteState.Attachment, nodeId: id, attachment };

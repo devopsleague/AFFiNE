@@ -118,7 +118,7 @@ export interface CopilotProviderModel {
 }
 
 export interface ModelConditions {
-  capability: CopilotCapability;
-  inputType: ModelInputType;
+  capability?: CopilotCapability;
+  inputType?: ModelInputType;
   modelId?: string;
 }

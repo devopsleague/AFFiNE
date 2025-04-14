@@ -61,6 +61,16 @@ export class OpenAIProvider extends CopilotProvider<OpenAIConfig> {
       ],
     },
     {
+      name: 'GPT-4o-08-06',
+      id: 'gpt-4o-2024-08-06',
+      capabilities: [
+        {
+          capability: CopilotCapability.Text,
+          supportedInputTypes: [ModelInputType.Text, ModelInputType.Image],
+        },
+      ],
+    },
+    {
       name: 'GPT-4o-mini',
       id: 'gpt-4o-mini',
       capabilities: [

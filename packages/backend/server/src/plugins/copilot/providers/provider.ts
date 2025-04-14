@@ -30,19 +30,15 @@ export abstract class CopilotProvider<C = any> {
   }
 
   isModelAvailable(
-    conditions: {
-      model?: string;
-      capability?: CopilotCapability;
-      inputType?: ModelInputType;
-    } = {}
+    conditions: ModelConditions = {}
   ): Promise<boolean> | boolean {
-    const { model, capability, inputType } = conditions;
+    const { modelId, capability, inputType } = conditions;
     if (!this.configured()) {
       return false;
     }
 
-    if (model) {
-      const foundModel = this.models.find(m => m.id === model);
+    if (modelId) {
+      const foundModel = this.models.find(m => m.id === modelId);
       if (!foundModel) {
         return false;
       }
@@ -133,13 +129,17 @@ export abstract class CopilotProvider<C = any> {
 
   protected validateModelCapability(
     model: CopilotProviderModel,
-    capability: CopilotCapability,
-    inputType: ModelInputType
+    capability?: CopilotCapability,
+    inputType?: ModelInputType
   ): ModelCapability | undefined {
+    if (!capability && !inputType) {
+      return model.capabilities[0];
+    }
+
     const matchingCapability = model.capabilities.find(
       cap =>
-        cap.capability === capability &&
-        cap.supportedInputTypes.includes(inputType)
+        (!capability || cap.capability === capability) &&
+        (!inputType || cap.supportedInputTypes.includes(inputType))
     );
 
     if (!matchingCapability) {
@@ -162,6 +162,12 @@ export abstract class CopilotProvider<C = any> {
 
       this.validateModelCapability(model, cond.capability, cond.inputType);
       return model;
+    }
+
+    if (!cond.capability) {
+      throw new CopilotPromptInvalid(
+        `Capability is required when modelId is not provided`
+      );
     }
 
     const defaultModel = this.getDefaultModelForCapability(

@@ -120,16 +120,6 @@ export class FalProvider extends CopilotProvider<FalConfig> {
       ],
     },
     {
-      name: 'Fast SDXL Image to Image',
-      id: 'fast-sdxl/image-to-image',
-      capabilities: [
-        {
-          capability: CopilotCapability.Image,
-          supportedInputTypes: [ModelInputType.Image],
-        },
-      ],
-    },
-    {
       name: 'Workflow TEED',
       id: 'workflowutils/teed',
       capabilities: [

@@ -56,7 +56,7 @@ export class CopilotProviderFactory {
 
       if (
         await provider.isModelAvailable({
-          model: filter.model,
+          modelId: filter.model,
           capability,
           inputType,
         })
@@ -71,12 +71,12 @@ export class CopilotProviderFactory {
   }
 
   async getProviderByModel(
-    model: string,
+    modelId: string,
     filter: {
       prefer?: CopilotProviderType;
     } = {}
   ): Promise<CopilotProvider | null> {
-    this.logger.debug(`Resolving copilot provider for model: ${model}`);
+    this.logger.debug(`Resolving copilot provider for model: ${modelId}`);
 
     let candidate: CopilotProvider | null = null;
     for (const [type, provider] of this.#providers.entries()) {
@@ -84,7 +84,7 @@ export class CopilotProviderFactory {
         continue;
       }
 
-      if (await provider.isModelAvailable({ model })) {
+      if (await provider.isModelAvailable({ modelId })) {
         candidate = provider;
         this.logger.debug(`Copilot provider candidate found: ${type}`);
       }
