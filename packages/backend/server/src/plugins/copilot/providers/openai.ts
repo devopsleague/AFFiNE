@@ -25,11 +25,9 @@ import {
   CopilotChatOptions,
   CopilotEmbeddingOptions,
   CopilotImageOptions,
-  CopilotImageToTextProvider,
   CopilotProviderType,
-  CopilotTextToEmbeddingProvider,
-  CopilotTextToImageProvider,
-  CopilotTextToTextProvider,
+  ModelConditions,
+  ModelInputType,
   PromptMessage,
 } from './types';
 import { chatToGPTMessage, CitationParser } from './utils';
@@ -41,42 +39,122 @@ export type OpenAIConfig = {
   baseUrl?: string;
 };
 
-export class OpenAIProvider
-  extends CopilotProvider<OpenAIConfig>
-  implements
-    CopilotTextToTextProvider,
-    CopilotTextToEmbeddingProvider,
-    CopilotTextToImageProvider,
-    CopilotImageToTextProvider
-{
+export class OpenAIProvider extends CopilotProvider<OpenAIConfig> {
   readonly type = CopilotProviderType.OpenAI;
   readonly capabilities = [
-    CopilotCapability.TextToText,
-    CopilotCapability.TextToEmbedding,
-    CopilotCapability.TextToImage,
-    CopilotCapability.ImageToText,
+    CopilotCapability.Text,
+    CopilotCapability.Embedding,
+    CopilotCapability.Image,
   ];
 
   readonly models = [
-    // text to text
-    'gpt-4o',
-    'gpt-4o-2024-08-06',
-    'gpt-4o-mini',
-    'gpt-4o-mini-2024-07-18',
-    'gpt-4.1',
-    'gpt-4.1-2025-04-14',
-    'gpt-4.1-mini',
-    'o1',
-    'o3-mini',
-    // embeddings
-    'text-embedding-3-large',
-    'text-embedding-3-small',
-    'text-embedding-ada-002',
-    // moderation
-    'text-moderation-latest',
-    'text-moderation-stable',
-    // text to image
-    'dall-e-3',
+    // Text to Text models
+    {
+      name: 'GPT-4o',
+      id: 'gpt-4o',
+      capabilities: [
+        {
+          capability: CopilotCapability.Text,
+          supportedInputTypes: [ModelInputType.Text, ModelInputType.Image],
+          defaultForCapability: true,
+        },
+      ],
+    },
+    {
+      name: 'GPT-4o-mini',
+      id: 'gpt-4o-mini',
+      capabilities: [
+        {
+          capability: CopilotCapability.Text,
+          supportedInputTypes: [ModelInputType.Text, ModelInputType.Image],
+        },
+      ],
+    },
+    {
+      name: 'Gpt-4.1',
+      id: 'gpt-4.1',
+      capabilities: [
+        {
+          capability: CopilotCapability.Text,
+          supportedInputTypes: [ModelInputType.Text, ModelInputType.Image],
+        },
+      ],
+    },
+    {
+      name: 'Gpt-4.1-04-14',
+      id: 'gpt-4.1',
+      capabilities: [
+        {
+          capability: CopilotCapability.Text,
+          supportedInputTypes: [ModelInputType.Text, ModelInputType.Image],
+        },
+      ],
+    },
+    {
+      name: 'Gpt-4.1-mini',
+      id: 'gpt-4.1-mini',
+      capabilities: [
+        {
+          capability: CopilotCapability.Text,
+          supportedInputTypes: [ModelInputType.Text, ModelInputType.Image],
+        },
+      ],
+    },
+    {
+      name: 'O1',
+      id: 'o1',
+      capabilities: [
+        {
+          capability: CopilotCapability.Text,
+          supportedInputTypes: [ModelInputType.Text],
+        },
+      ],
+    },
+    {
+      name: 'O3-mini',
+      id: 'o3-mini',
+      capabilities: [
+        {
+          capability: CopilotCapability.Text,
+          supportedInputTypes: [ModelInputType.Text],
+        },
+      ],
+    },
+    // Embedding models
+    {
+      name: 'Text Embedding 3 Large',
+      id: 'text-embedding-3-large',
+      capabilities: [
+        {
+          capability: CopilotCapability.Embedding,
+          supportedInputTypes: [ModelInputType.Text],
+          defaultForCapability: true,
+        },
+      ],
+    },
+    {
+      name: 'Text Embedding 3 Small',
+      id: 'text-embedding-3-small',
+      capabilities: [
+        {
+          capability: CopilotCapability.Embedding,
+          supportedInputTypes: [ModelInputType.Text],
+        },
+      ],
+    },
+
+    // Image generation models
+    {
+      name: 'DALL-E 3',
+      id: 'dall-e-3',
+      capabilities: [
+        {
+          capability: CopilotCapability.Image,
+          supportedInputTypes: [ModelInputType.Text],
+          defaultForCapability: true,
+        },
+      ],
+    },
   ];
 
   #instance!: VercelOpenAIProvider;
@@ -94,18 +172,18 @@ export class OpenAIProvider
   }
 
   protected async checkParams({
+    cond,
     messages,
     embeddings,
-    model,
     options = {},
   }: {
+    cond: ModelConditions;
     messages?: PromptMessage[];
     embeddings?: string[];
-    model: string;
-    options: CopilotChatOptions;
+    options?: CopilotChatOptions;
   }) {
-    if (!(await this.isModelAvailable(model))) {
-      throw new CopilotPromptInvalid(`Invalid model: ${model}`);
+    if (!(await this.isModelAvailable(cond))) {
+      throw new CopilotPromptInvalid(`Model not available: ${cond}`);
     }
     if (Array.isArray(messages) && messages.length > 0) {
       if (
@@ -136,7 +214,7 @@ export class OpenAIProvider
       // json mode need 'json' keyword in content
       // ref: https://platform.openai.com/docs/api-reference/chat/create#chat-create-response_format
       if (
-        options.jsonMode &&
+        options?.jsonMode &&
         !messages.some(m => m.content.toLowerCase().includes('json'))
       ) {
         throw new CopilotPromptInvalid('Prompt not support json mode');
@@ -186,30 +264,35 @@ export class OpenAIProvider
     return undefined;
   }
 
-  // ====== text to text ======
-  async generateText(
+  async text(
+    cond: ModelConditions,
     messages: PromptMessage[],
-    model: string = 'gpt-4.1-mini',
-    options: CopilotChatOptions = {}
+    options:
+      | CopilotChatOptions
+      | CopilotEmbeddingOptions
+      | CopilotImageOptions = {}
   ): Promise<string> {
-    await this.checkParams({ messages, model, options });
+    await this.checkParams({ messages, cond, options });
+    const model = this.selectModel(cond);
 
     try {
-      metrics.ai.counter('chat_text_calls').add(1, { model });
+      metrics.ai.counter('chat_text_calls').add(1, { model: model.id });
 
       const [system, msgs, schema] = await chatToGPTMessage(messages);
 
-      const modelInstance = this.#instance(model, {
-        structuredOutputs: Boolean(options.jsonMode),
-        user: options.user,
+      const modelInstance = this.#instance(model.id, {
+        structuredOutputs: Boolean(
+          'jsonMode' in options ? options.jsonMode : false
+        ),
+        user: 'user' in options ? options.user : undefined,
       });
 
       const commonParams = {
         model: modelInstance,
         system,
         messages: msgs,
-        temperature: options.temperature || 0,
-        maxTokens: options.maxTokens || 4096,
+        temperature: ('temperature' in options && options.temperature) || 0,
+        maxTokens: ('maxTokens' in options && options.maxTokens) || 4096,
         abortSignal: options.signal,
       };
 
@@ -221,34 +304,37 @@ export class OpenAIProvider
         : await generateText({
             ...commonParams,
             providerOptions: {
-              openai: options.user ? { user: options.user } : {},
+              openai:
+                'user' in options && options.user ? { user: options.user } : {},
             },
           });
 
       return text.trim();
     } catch (e: any) {
-      metrics.ai.counter('chat_text_errors').add(1, { model });
-      throw this.handleError(e, model, options);
+      metrics.ai.counter('chat_text_errors').add(1, { model: model.id });
+      throw this.handleError(e, model.id, options);
     }
   }
 
-  async *generateTextStream(
+  async *streamText(
+    cond: ModelConditions,
     messages: PromptMessage[],
-    model: string = 'gpt-4.1-mini',
-    options: CopilotChatOptions = {}
+    options: CopilotChatOptions | CopilotImageOptions = {}
   ): AsyncIterable<string> {
-    await this.checkParams({ messages, model, options });
+    await this.checkParams({ messages, cond });
+    const model = this.selectModel(cond);
 
     try {
-      metrics.ai.counter('chat_text_stream_calls').add(1, { model });
-
+      metrics.ai.counter('chat_text_stream_calls').add(1, { model: model.id });
       const [system, msgs] = await chatToGPTMessage(messages);
 
       const modelInstance = options.webSearch
-        ? this.#instance.responses(model)
-        : this.#instance(model, {
-            structuredOutputs: Boolean(options.jsonMode),
-            user: options.user,
+        ? this.#instance.responses(model.id)
+        : this.#instance(model.id, {
+            structuredOutputs: Boolean(
+              'jsonMode' in options ? options.jsonMode : false
+            ),
+            user: 'user' in options ? options.user : undefined,
           });
 
       const { fullStream } = streamText({
@@ -256,10 +342,12 @@ export class OpenAIProvider
         system,
         messages: msgs,
         tools: this.getToolUse(options),
-        frequencyPenalty: options.frequencyPenalty || 0,
-        presencePenalty: options.presencePenalty || 0,
-        temperature: options.temperature || 0,
-        maxTokens: options.maxTokens || 4096,
+        frequencyPenalty:
+          ('frequencyPenalty' in options && options.frequencyPenalty) || 0,
+        presencePenalty:
+          ('presencePenalty' in options && options.presencePenalty) || 0,
+        temperature: ('temperature' in options && options.temperature) || 0,
+        maxTokens: ('maxTokens' in options && options.maxTokens) || 4096,
         abortSignal: options.signal,
       });
 
@@ -286,25 +374,28 @@ export class OpenAIProvider
         }
       }
     } catch (e: any) {
-      metrics.ai.counter('chat_text_stream_errors').add(1, { model });
-      throw this.handleError(e, model, options);
+      metrics.ai.counter('chat_text_stream_errors').add(1, { model: model.id });
+      throw this.handleError(e, model.id, options);
     }
   }
 
   // ====== text to embedding ======
 
   async generateEmbedding(
+    cond: ModelConditions,
     messages: string | string[],
-    model: string,
     options: CopilotEmbeddingOptions = { dimensions: DEFAULT_DIMENSIONS }
   ): Promise<number[][]> {
     messages = Array.isArray(messages) ? messages : [messages];
-    await this.checkParams({ embeddings: messages, model, options });
+    await this.checkParams({ embeddings: messages, cond, options });
+    const model = this.selectModel(cond);
 
     try {
-      metrics.ai.counter('generate_embedding_calls').add(1, { model });
+      metrics.ai
+        .counter('generate_embedding_calls')
+        .add(1, { model: model.id });
 
-      const modelInstance = this.#instance.embedding(model, {
+      const modelInstance = this.#instance.embedding(model.id, {
         dimensions: options.dimensions || DEFAULT_DIMENSIONS,
         user: options.user,
       });
@@ -316,24 +407,28 @@ export class OpenAIProvider
 
       return embeddings.filter(v => v && Array.isArray(v));
     } catch (e: any) {
-      metrics.ai.counter('generate_embedding_errors').add(1, { model });
-      throw this.handleError(e, model, options);
+      metrics.ai
+        .counter('generate_embedding_errors')
+        .add(1, { model: model.id });
+      throw this.handleError(e, model.id, options);
     }
   }
 
   // ====== text to image ======
   async generateImages(
+    cond: ModelConditions,
     messages: PromptMessage[],
-    model: string = 'dall-e-3',
     options: CopilotImageOptions = {}
   ): Promise<Array<string>> {
     const { content: prompt } = messages.pop() || {};
     if (!prompt) throw new CopilotPromptInvalid('Prompt is required');
 
-    try {
-      metrics.ai.counter('generate_images_calls').add(1, { model });
+    const model = this.selectModel(cond);
 
-      const modelInstance = this.#instance.image(model);
+    try {
+      metrics.ai.counter('generate_images_calls').add(1, { model: model.id });
+
+      const modelInstance = this.#instance.image(model.id);
 
       const result = await generateImage({
         model: modelInstance,
@@ -344,24 +439,29 @@ export class OpenAIProvider
         image => `data:image/png;base64,${image.base64}`
       );
     } catch (e: any) {
-      metrics.ai.counter('generate_images_errors').add(1, { model });
-      throw this.handleError(e, model, options);
+      metrics.ai.counter('generate_images_errors').add(1, { model: model.id });
+      throw this.handleError(e, model.id, options);
     }
   }
 
   async *generateImagesStream(
+    cond: ModelConditions,
     messages: PromptMessage[],
-    model: string = 'dall-e-3',
     options: CopilotImageOptions = {}
   ): AsyncIterable<string> {
+    const model = this.selectModel(cond);
     try {
-      metrics.ai.counter('generate_images_stream_calls').add(1, { model });
-      const ret = await this.generateImages(messages, model, options);
+      metrics.ai
+        .counter('generate_images_stream_calls')
+        .add(1, { model: model.id });
+      const ret = await this.generateImages(cond, messages, options);
       for (const url of ret) {
         yield url;
       }
     } catch (e) {
-      metrics.ai.counter('generate_images_stream_errors').add(1, { model });
+      metrics.ai
+        .counter('generate_images_stream_errors')
+        .add(1, { model: model.id });
       throw e;
     }
   }
