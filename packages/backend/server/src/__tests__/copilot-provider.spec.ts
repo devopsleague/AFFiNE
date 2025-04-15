@@ -6,7 +6,10 @@ import { AuthService } from '../core/auth';
 import { QuotaModule } from '../core/quota';
 import { CopilotModule } from '../plugins/copilot';
 import { prompts, PromptService } from '../plugins/copilot/prompt';
-import { CopilotProviderFactory } from '../plugins/copilot/providers';
+import {
+  CopilotCapability,
+  CopilotProviderFactory,
+} from '../plugins/copilot/providers';
 import { TranscriptionResponseSchema } from '../plugins/copilot/transcript/types';
 import {
   CopilotChatTextExecutor,
@@ -559,16 +562,25 @@ for (const { name, promptName, messages, verifier, type } of actions) {
             t.truthy(result, 'should return result');
             verifier?.(t, result);
           } else if (type === 'image' && 'streamText' in provider) {
-            const result = await provider.text({ modelId: prompt.model }, [
-              ...prompt.finish(
-                messages.reduce(
-                  // @ts-expect-error
-                  (acc, m) => Object.assign(acc, m.params),
-                  {}
-                )
-              ),
-              ...messages,
-            ]);
+            const stream = provider.streamText(
+              { modelId: prompt.model, capability: CopilotCapability.Image },
+              [
+                ...prompt.finish(
+                  messages.reduce(
+                    // @ts-expect-error
+                    (acc, m) => Object.assign(acc, m.params),
+                    {}
+                  )
+                ),
+                ...messages,
+              ]
+            );
+
+            const result = [];
+            for await (const attachment of stream) {
+              result.push(attachment);
+            }
+
             t.truthy(result.length, 'should return result');
             for (const r of result) {
               verifier?.(t, r);

@@ -104,7 +104,7 @@ export class FalProvider extends CopilotProvider<FalConfig> {
       id: 'face-to-sticker',
       capabilities: [
         {
-          capability: CopilotCapability.Text,
+          capability: CopilotCapability.Image,
           supportedInputTypes: [ModelInputType.Image],
         },
       ],
