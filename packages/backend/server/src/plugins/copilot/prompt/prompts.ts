@@ -29,7 +29,7 @@ const workflows: Prompt[] = [
   {
     name: 'workflow:presentation:step1',
     action: 'workflow:presentation:step1',
-    model: 'gpt-4o-2024-08-06',
+    model: 'gpt-4o-mini',
     config: { temperature: 0.7 },
     messages: [
       {
@@ -92,7 +92,7 @@ const workflows: Prompt[] = [
   {
     name: 'workflow:brainstorm:step1',
     action: 'workflow:brainstorm:step1',
-    model: 'gpt-4o-2024-08-06',
+    model: 'gpt-4o-mini',
     config: { temperature: 0.7 },
     messages: [
       {
@@ -855,7 +855,7 @@ If there are items in the content that can be used as to-do tasks, please refer 
   {
     name: 'Create headings',
     action: 'Create headings',
-    model: 'gpt-4o-2024-08-06',
+    model: 'gpt-4.1-mini',
     messages: [
       {
         role: 'system',

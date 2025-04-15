@@ -60,6 +60,7 @@ export class OpenAIProvider extends CopilotProvider<OpenAIConfig> {
         },
       ],
     },
+    // FIXME(@darkskygit): deprecated
     {
       name: 'GPT-4o-08-06',
       id: 'gpt-4o-2024-08-06',
@@ -73,6 +74,17 @@ export class OpenAIProvider extends CopilotProvider<OpenAIConfig> {
     {
       name: 'GPT-4o-mini',
       id: 'gpt-4o-mini',
+      capabilities: [
+        {
+          capability: CopilotCapability.Text,
+          supportedInputTypes: [ModelInputType.Text, ModelInputType.Image],
+        },
+      ],
+    },
+    // FIXME(@darkskygit): deprecated
+    {
+      name: 'GPT-4o-mini-07-17',
+      id: 'gpt-4o-mini-2024-07-18',
       capabilities: [
         {
           capability: CopilotCapability.Text,
