@@ -104,7 +104,7 @@ export class OpenAIProvider extends CopilotProvider<OpenAIConfig> {
     },
     {
       name: 'Gpt-4.1-04-14',
-      id: 'gpt-4.1',
+      id: 'gpt-4.1-2025-04-14',
       capabilities: [
         {
           capability: CopilotCapability.Text,
