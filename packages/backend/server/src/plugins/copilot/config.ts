@@ -3,6 +3,7 @@ import {
   StorageJSONSchema,
   StorageProviderConfig,
 } from '../../base';
+import { AnthropicConfig } from './providers/anthropic';
 import type { FalConfig } from './providers/fal';
 import { GeminiConfig } from './providers/gemini';
 import { OpenAIConfig } from './providers/openai';
@@ -21,6 +22,7 @@ declare global {
         fal: ConfigItem<FalConfig>;
         gemini: ConfigItem<GeminiConfig>;
         perplexity: ConfigItem<PerplexityConfig>;
+        anthropic: ConfigItem<AnthropicConfig>;
       };
     };
   }
@@ -52,6 +54,12 @@ defineModuleConfig('copilot', {
   },
   'providers.perplexity': {
     desc: 'The config for the perplexity provider.',
+    default: {
+      apiKey: '',
+    },
+  },
+  'providers.anthropic': {
+    desc: 'The config for the anthropic provider.',
     default: {
       apiKey: '',
     },

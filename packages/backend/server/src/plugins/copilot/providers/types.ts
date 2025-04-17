@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { type CopilotProvider } from './provider';
 
 export enum CopilotProviderType {
+  Anthropic = 'anthropic',
   FAL = 'fal',
   Gemini = 'gemini',
   OpenAI = 'openai',
