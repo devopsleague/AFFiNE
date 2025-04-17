@@ -111,6 +111,10 @@ export class BlobEngine {
     return this.main.maxFileSize ?? MAX_FILE_SIZE;
   }
 
+  blobState$(key: string) {
+    return this.main.blobState$?.(key) ?? null;
+  }
+
   start() {
     if (this._abort) {
       return;
