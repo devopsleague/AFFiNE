@@ -22,7 +22,11 @@ export function getEditorConfigExtension(
   const baseUrl = workspaceServerService.server?.baseUrl ?? location.origin;
 
   return [
-    EditorSettingExtension(editorSettingService.editorSetting.settingSignal),
+    EditorSettingExtension({
+      // eslint-disable-next-line rxjs/finnish
+      setting$: editorSettingService.editorSetting.settingSignal,
+      set: (k, v) => editorSettingService.editorSetting.set(k, v),
+    }),
     DatabaseConfigExtension(createDatabaseOptionsConfig(framework)),
     LinkedWidgetConfigExtension(createLinkedWidgetConfig(framework)),
     ToolbarMoreMenuConfigExtension(createToolbarMoreMenuConfig(framework)),

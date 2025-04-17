@@ -275,6 +275,10 @@ export const USER_FRIENDLY_ERRORS = {
     args: { message: 'string' },
     message: ({ message }) => `HTTP request error, message: ${message}`,
   },
+  email_service_not_configured: {
+    type: 'internal_server_error',
+    message: 'Email service is not configured.',
+  },
 
   // Input errors
   query_too_long: {

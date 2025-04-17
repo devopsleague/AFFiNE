@@ -33,6 +33,9 @@ export class ChatPanelUtils {
     }
     await page.getByTestId('sidebar-tab-chat').click();
     await expect(page.getByTestId('sidebar-tab-content-chat')).toBeVisible();
+    // TODO: remove this
+    // after network search is disabled by default
+    await this.disableNetworkSearch(page);
   }
 
   public static async typeChat(page: Page, content: string) {
@@ -48,7 +51,6 @@ export class ChatPanelUtils {
   }
 
   public static async makeChat(page: Page, content: string) {
-    await this.openChatPanel(page);
     await this.typeChat(page, content);
     await page.keyboard.press('Enter');
   }

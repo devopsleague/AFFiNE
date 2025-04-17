@@ -54,6 +54,12 @@ export class HttpRequestError extends UserFriendlyError {
     super('bad_request', 'http_request_error', message, args);
   }
 }
+
+export class EmailServiceNotConfigured extends UserFriendlyError {
+  constructor(message?: string) {
+    super('internal_server_error', 'email_service_not_configured', message);
+  }
+}
 @ObjectType()
 class QueryTooLongDataType {
   @Field() max!: number
@@ -943,6 +949,7 @@ export enum ErrorNames {
   BAD_REQUEST,
   GRAPHQL_BAD_REQUEST,
   HTTP_REQUEST_ERROR,
+  EMAIL_SERVICE_NOT_CONFIGURED,
   QUERY_TOO_LONG,
   VALIDATION_ERROR,
   USER_NOT_FOUND,

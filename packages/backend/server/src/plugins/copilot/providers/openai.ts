@@ -62,6 +62,9 @@ export class OpenAIProvider
     'gpt-4o-2024-08-06',
     'gpt-4o-mini',
     'gpt-4o-mini-2024-07-18',
+    'gpt-4.1',
+    'gpt-4.1-2025-04-14',
+    'gpt-4.1-mini',
     'o1',
     'o3-mini',
     // embeddings
@@ -176,7 +179,7 @@ export class OpenAIProvider
   // ====== text to text ======
   async generateText(
     messages: PromptMessage[],
-    model: string = 'gpt-4o-mini',
+    model: string = 'gpt-4.1-mini',
     options: CopilotChatOptions = {}
   ): Promise<string> {
     await this.checkParams({ messages, model, options });
@@ -221,7 +224,7 @@ export class OpenAIProvider
 
   async *generateTextStream(
     messages: PromptMessage[],
-    model: string = 'gpt-4o-mini',
+    model: string = 'gpt-4.1-mini',
     options: CopilotChatOptions = {}
   ): AsyncIterable<string> {
     await this.checkParams({ messages, model, options });

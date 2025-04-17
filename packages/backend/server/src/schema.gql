@@ -195,6 +195,9 @@ enum CopilotModels {
   Gpt4Omni0806
   Gpt4OmniMini
   Gpt4OmniMini0718
+  Gpt41
+  Gpt41Mini
+  Gpt410414
   TextEmbedding3Large
   TextEmbedding3Small
   TextEmbeddingAda002
@@ -447,6 +450,7 @@ enum ErrorNames {
   DOC_UPDATE_BLOCKED
   EARLY_ACCESS_REQUIRED
   EMAIL_ALREADY_USED
+  EMAIL_SERVICE_NOT_CONFIGURED
   EMAIL_TOKEN_NOT_FOUND
   EMAIL_VERIFICATION_REQUIRED
   EXPECT_TO_GRANT_DOC_USER_ROLES
@@ -1489,6 +1493,9 @@ input UpdateWorkspaceInput {
   """Enable AI"""
   enableAi: Boolean
 
+  """Enable doc embedding"""
+  enableDocEmbedding: Boolean
+
   """Enable url previous when sharing"""
   enableUrlPreview: Boolean
   id: ID!
@@ -1697,6 +1704,9 @@ type WorkspaceType {
 
   """Enable AI"""
   enableAi: Boolean!
+
+  """Enable doc embedding"""
+  enableDocEmbedding: Boolean!
 
   """Enable url previous when sharing"""
   enableUrlPreview: Boolean!

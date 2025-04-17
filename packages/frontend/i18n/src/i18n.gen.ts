@@ -586,6 +586,10 @@ export function useAFFiNEI18N(): {
       */
     all(): string;
     /**
+      * `current`
+      */
+    current(): string;
+    /**
       * `Automatically check for new updates periodically.`
       */
     ["com.affine.aboutAFFiNE.autoCheckUpdate.description"](): string;
@@ -3947,6 +3951,12 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.payment.member.team.invite.expiration-date"](options: {
         readonly number: string;
+    }): string;
+    /**
+      * `To expire at: {{expireTime}}`
+      */
+    ["com.affine.payment.member.team.invite.expire-at"](options: {
+        readonly expireTime: string;
     }): string;
     /**
       * `Invitation link`
@@ -7686,6 +7696,10 @@ export function useAFFiNEI18N(): {
     ["error.HTTP_REQUEST_ERROR"](options: {
         readonly message: string;
     }): string;
+    /**
+      * `Email service is not configured.`
+      */
+    ["error.EMAIL_SERVICE_NOT_CONFIGURED"](): string;
     /**
       * `Query is too long, max length is {{max}}.`
       */

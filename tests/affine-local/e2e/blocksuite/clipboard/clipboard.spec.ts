@@ -397,4 +397,40 @@ test.describe('paste to code block', () => {
     // Verify the pasted code maintains indentation
     await verifyCodeBlockContent(page, 0, plainTextCode);
   });
+
+  test('should paste markdown text as plain text', async ({ page }) => {
+    await pressEnter(page);
+    await addCodeBlock(page);
+
+    const markdownText = [
+      '# Heading 1',
+      '',
+      '## Heading 2 with **bold** and *italic*',
+      '',
+      '### Lists:',
+      '- Item 1',
+      '  - Nested item with `inline code`',
+      '  - Another nested item',
+      '- Item 2 with [link](https://example.com)',
+      '',
+      '```typescript',
+      'const code = "block";',
+      'console.log(code);',
+      '```',
+      '',
+      '> This is a blockquote with **bold** text',
+      '> Multiple lines in blockquote',
+      '',
+      '| Table | Header |',
+      '|-------|--------|',
+      '| Cell 1 | Cell 2 |',
+      '$This is a inline latex$',
+    ].join('\n');
+
+    await pasteContent(page, { 'text/plain': markdownText });
+    await page.waitForTimeout(100);
+
+    // Verify the pasted code maintains indentation
+    await verifyCodeBlockContent(page, 0, markdownText);
+  });
 });

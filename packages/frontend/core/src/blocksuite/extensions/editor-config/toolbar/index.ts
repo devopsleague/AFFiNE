@@ -88,7 +88,7 @@ import { repeat } from 'lit/directives/repeat.js';
 import { styleMap } from 'lit/directives/style-map.js';
 
 import { openDocActions } from '../../open-doc';
-import { createCopyAsPngMenuItem } from './copy-as-image';
+import { copyAsImage, createCopyAsPngMenuItem } from './copy-as-image';
 
 export function createToolbarMoreMenuConfig(framework: FrameworkProvider) {
   return {
@@ -224,6 +224,9 @@ function createToolbarMoreMenuConfigV2(baseUrl?: string) {
               !flags.isHovering() &&
               isEdgelessMode &&
               gfx.selection.selectedElements.length > 0,
+            run: ({ std }) => {
+              copyAsImage(std);
+            },
           },
           {
             id: 'copy-link-to-block',

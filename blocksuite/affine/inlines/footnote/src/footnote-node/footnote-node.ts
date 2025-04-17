@@ -1,4 +1,5 @@
 import { HoverController } from '@blocksuite/affine-components/hover';
+import { PeekViewProvider } from '@blocksuite/affine-components/peek';
 import type { FootNote } from '@blocksuite/affine-model';
 import { unsafeCSSVarV2 } from '@blocksuite/affine-shared/theme';
 import type { AffineTextAttributes } from '@blocksuite/affine-shared/types';
@@ -105,8 +106,47 @@ export class AffineFootnoteNode extends WithDisposable(ShadowlessElement) {
     return selfInlineRange;
   }
 
+  get footnote() {
+    return this.delta.attributes?.footnote;
+  }
+
+  onFootnoteClick = () => {
+    if (!this.footnote) {
+      return;
+    }
+    const { type, docId, url } = this.footnote.reference;
+
+    switch (type) {
+      case 'doc':
+        if (docId) {
+          this._handleDocReference(docId);
+        }
+        break;
+      case 'url':
+        if (url) {
+          this._handleUrlReference(url);
+        }
+        break;
+    }
+  };
+
+  private readonly _handleDocReference = (docId: string) => {
+    this.std
+      .getOptional(PeekViewProvider)
+      ?.peek({
+        docId,
+      })
+      .catch(console.error);
+  };
+
+  private readonly _handleUrlReference = (url: string) => {
+    window.open(url, '_blank');
+  };
+
   private readonly _FootNoteDefaultContent = (footnote: FootNote) => {
-    return html`<span class="footnote-content-default"
+    return html`<span
+      class="footnote-content-default"
+      @click=${this.onFootnoteClick}
       >${footnote.label}</span
     >`;
   };
@@ -121,14 +161,14 @@ export class AffineFootnoteNode extends WithDisposable(ShadowlessElement) {
           .footnote=${footnote}
           .std=${this.std}
           .abortController=${abortController}
-          .onPopupClick=${this.onPopupClick}
+          .onPopupClick=${this.onPopupClick ?? this.onFootnoteClick}
         ></footnote-popup>`;
   };
 
   private readonly _whenHover: HoverController = new HoverController(
     this,
     ({ abortController }) => {
-      const footnote = this.delta.attributes?.footnote;
+      const { footnote } = this;
       if (!footnote) return null;
 
       if (

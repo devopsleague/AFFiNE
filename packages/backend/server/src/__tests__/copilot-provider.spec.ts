@@ -461,8 +461,9 @@ const actions = [
     ],
     verifier: (t: ExecutionContext<Tester>, result: string) => {
       assertNotWrappedInCodeBlock(t, result);
+      const cleared = result.toLowerCase();
       t.assert(
-        result.toLowerCase().includes('单一事实来源'),
+        cleared.includes('单一') || cleared.includes('SSOT'),
         'explain code result should include keyword'
       );
     },

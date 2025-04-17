@@ -9,6 +9,12 @@ test.describe('AIBasic/Authority', () => {
     await utils.chatPanel.openChatPanel(page);
   });
 
+  test('should show messages placeholder when no login', async ({ page }) => {
+    await expect(
+      page.getByTestId('chat-panel-messages-placeholder')
+    ).toBeVisible();
+  });
+
   test('should show error & login button when no login', async ({
     page,
     utils,

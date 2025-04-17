@@ -4,7 +4,6 @@ import {
   LightLoadingIcon,
   WebIcon16,
 } from '@blocksuite/affine-components/icons';
-import { PeekViewProvider } from '@blocksuite/affine-components/peek';
 import { ColorScheme, type FootNote } from '@blocksuite/affine-model';
 import {
   DocDisplayMetaProvider,
@@ -127,50 +126,9 @@ export class FootNotePopup extends SignalWatcher(WithDisposable(LitElement)) {
     return theme === ColorScheme.Light ? LightLoadingIcon : DarkLoadingIcon;
   };
 
-  /**
-   * When clicking the chip, we will navigate to the reference doc or open the url
-   */
-  private readonly _handleDocReference = (docId: string) => {
-    this.std
-      .getOptional(PeekViewProvider)
-      ?.peek({
-        docId,
-      })
-      .catch(console.error);
-  };
-
-  private readonly _handleUrlReference = (url: string) => {
-    window.open(url, '_blank');
-  };
-
-  private readonly _handleReference = () => {
-    const { type, docId, url } = this.footnote.reference;
-
-    switch (type) {
-      case 'doc':
-        if (docId) {
-          this._handleDocReference(docId);
-        }
-        break;
-      case 'url':
-        if (url) {
-          this._handleUrlReference(url);
-        }
-        break;
-    }
-
-    this.abortController.abort();
-  };
-
   private readonly _onChipClick = () => {
-    // If the onPopupClick is defined, use it
-    if (this.onPopupClick) {
-      this.onPopupClick(this.footnote, this.abortController);
-      return;
-    }
-
-    // Otherwise, handle the reference by default
-    this._handleReference();
+    this.onPopupClick(this.footnote, this.abortController);
+    this.abortController.abort();
   };
 
   override connectedCallback() {
@@ -217,5 +175,5 @@ export class FootNotePopup extends SignalWatcher(WithDisposable(LitElement)) {
   accessor abortController!: AbortController;
 
   @property({ attribute: false })
-  accessor onPopupClick: FootNotePopupClickHandler | undefined = undefined;
+  accessor onPopupClick: FootNotePopupClickHandler | (() => void) = () => {};
 }

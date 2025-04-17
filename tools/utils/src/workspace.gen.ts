@@ -50,6 +50,7 @@ export const PackageList = [
       'blocksuite/affine/widgets/edgeless-auto-connect',
       'blocksuite/affine/widgets/edgeless-toolbar',
       'blocksuite/affine/widgets/frame-title',
+      'blocksuite/affine/widgets/keyboard-toolbar',
       'blocksuite/affine/widgets/linked-doc',
       'blocksuite/affine/widgets/remote-selection',
       'blocksuite/affine/widgets/scroll-anchoring',
@@ -339,6 +340,7 @@ export const PackageList = [
       'blocksuite/affine/widgets/edgeless-auto-connect',
       'blocksuite/affine/widgets/edgeless-toolbar',
       'blocksuite/affine/widgets/frame-title',
+      'blocksuite/affine/widgets/keyboard-toolbar',
       'blocksuite/affine/widgets/linked-doc',
       'blocksuite/affine/widgets/remote-selection',
       'blocksuite/affine/widgets/scroll-anchoring',
@@ -771,6 +773,35 @@ export const PackageList = [
       'blocksuite/affine/shared',
       'blocksuite/framework/global',
       'blocksuite/framework/std',
+    ],
+  },
+  {
+    location: 'blocksuite/affine/widgets/keyboard-toolbar',
+    name: '@blocksuite/affine-widget-keyboard-toolbar',
+    workspaceDependencies: [
+      'blocksuite/affine/blocks/attachment',
+      'blocksuite/affine/blocks/database',
+      'blocksuite/affine/blocks/embed',
+      'blocksuite/affine/blocks/image',
+      'blocksuite/affine/blocks/latex',
+      'blocksuite/affine/blocks/list',
+      'blocksuite/affine/blocks/note',
+      'blocksuite/affine/blocks/paragraph',
+      'blocksuite/affine/blocks/surface',
+      'blocksuite/affine/blocks/surface-ref',
+      'blocksuite/affine/components',
+      'blocksuite/affine/fragments/doc-title',
+      'blocksuite/affine/inlines/latex',
+      'blocksuite/affine/inlines/link',
+      'blocksuite/affine/inlines/preset',
+      'blocksuite/affine/inlines/reference',
+      'blocksuite/affine/model',
+      'blocksuite/affine/rich-text',
+      'blocksuite/affine/shared',
+      'blocksuite/affine/data-view',
+      'blocksuite/framework/global',
+      'blocksuite/framework/std',
+      'blocksuite/framework/store',
     ],
   },
   {
@@ -1238,6 +1269,7 @@ export type PackageName =
   | '@blocksuite/affine-widget-edgeless-auto-connect'
   | '@blocksuite/affine-widget-edgeless-toolbar'
   | '@blocksuite/affine-widget-frame-title'
+  | '@blocksuite/affine-widget-keyboard-toolbar'
   | '@blocksuite/affine-widget-linked-doc'
   | '@blocksuite/affine-widget-remote-selection'
   | '@blocksuite/affine-widget-scroll-anchoring'

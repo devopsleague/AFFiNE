@@ -3,6 +3,7 @@ import { EditorChevronDown } from '@blocksuite/affine-components/toolbar';
 import { EmbedSyncedDocModel } from '@blocksuite/affine-model';
 import {
   ActionPlacement,
+  EditorSettingProvider,
   type LinkEventType,
   type OpenDocMode,
   type ToolbarAction,
@@ -21,7 +22,7 @@ import {
   ExpandFullIcon,
   OpenInNewIcon,
 } from '@blocksuite/icons/lit';
-import { BlockFlavourIdentifier } from '@blocksuite/std';
+import { BlockFlavourIdentifier, isGfxBlockComponent } from '@blocksuite/std';
 import { type ExtensionType, Slice } from '@blocksuite/store';
 import { computed, signal } from '@preact/signals-core';
 import { html } from 'lit';
@@ -30,7 +31,6 @@ import { keyed } from 'lit/directives/keyed.js';
 import { repeat } from 'lit/directives/repeat.js';
 
 import { EmbedSyncedDocBlockComponent } from '../embed-synced-doc-block';
-
 const trackBaseProps = {
   category: 'linked doc',
   type: 'embed view',
@@ -142,6 +142,14 @@ const conversionsActionGroup = {
       label: 'Card view',
       run(ctx) {
         const block = ctx.getCurrentBlockByType(EmbedSyncedDocBlockComponent);
+        if (isGfxBlockComponent(block)) {
+          const editorSetting = ctx.std.getOptional(EditorSettingProvider);
+          editorSetting?.set?.(
+            'docDropCanvasPreferView',
+            'affine:embed-linked-doc'
+          );
+        }
+
         block?.convertToCard();
 
         ctx.track('SelectedView', {

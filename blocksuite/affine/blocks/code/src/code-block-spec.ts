@@ -8,6 +8,7 @@ import type { ExtensionType } from '@blocksuite/store';
 import { literal, unsafeStatic } from 'lit/static-html.js';
 
 import { CodeBlockAdapterExtensions } from './adapters/extension.js';
+import { getCodeClipboardExtensions } from './clipboard/index.js';
 import {
   CodeBlockInlineManagerExtension,
   CodeBlockUnitSpecExtension,
@@ -35,4 +36,5 @@ export const CodeBlockSpec: ExtensionType[] = [
   SlashMenuConfigExtension('affine:code', codeSlashMenuConfig),
   CodeKeymapExtension,
   CodeBlockHtmlPreview,
+  ...getCodeClipboardExtensions(),
 ].flat();

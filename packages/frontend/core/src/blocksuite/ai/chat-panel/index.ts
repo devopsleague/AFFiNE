@@ -400,7 +400,7 @@ export class ChatPanel extends SignalWatcher(
         .createSessionId=${this._createSessionId}
         .updateContext=${this.updateContext}
         .host=${this.host}
-        .isLoading=${this.isLoading || !this._isInitialized}
+        .isLoading=${this.isLoading}
         .previewSpecBuilder=${this.previewSpecBuilder}
       ></chat-panel-messages>
       <ai-chat-composer
