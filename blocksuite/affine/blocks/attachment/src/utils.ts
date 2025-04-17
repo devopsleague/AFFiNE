@@ -15,18 +15,9 @@ import type { BlockStdScope } from '@blocksuite/std';
 import { GfxControllerIdentifier } from '@blocksuite/std/gfx';
 import type { BlockModel } from '@blocksuite/store';
 
-import type { AttachmentBlockComponent } from './attachment-block.js';
+import type { AttachmentBlockComponent } from './attachment-block';
 
 const attachmentUploads = new Set<string>();
-export function setAttachmentUploading(blockId: string) {
-  attachmentUploads.add(blockId);
-}
-export function setAttachmentUploaded(blockId: string) {
-  attachmentUploads.delete(blockId);
-}
-function isAttachmentUploading(blockId: string) {
-  return attachmentUploads.has(blockId);
-}
 
 /**
  * This function will not verify the size of the file.
@@ -38,14 +29,12 @@ export async function uploadAttachmentBlob(
   filetype: string,
   isEdgeless?: boolean
 ): Promise<void> {
-  if (isAttachmentUploading(blockId)) {
-    return;
-  }
+  if (attachmentUploads.has(blockId)) return;
 
   let sourceId: string | undefined;
 
   try {
-    setAttachmentUploading(blockId);
+    attachmentUploads.add(blockId);
     sourceId = await std.store.blobSync.set(blob);
   } catch (error) {
     console.error(error);
@@ -56,7 +45,7 @@ export async function uploadAttachmentBlob(
       );
     }
   } finally {
-    setAttachmentUploaded(blockId);
+    attachmentUploads.delete(blockId);
 
     const block = std.store.getBlock(blockId);
 
@@ -81,9 +70,7 @@ export async function uploadAttachmentBlob(
 
 export async function getAttachmentBlob(model: AttachmentBlockModel) {
   const sourceId = model.props.sourceId;
-  if (!sourceId) {
-    return null;
-  }
+  if (!sourceId) return null;
 
   const doc = model.doc;
   let blob = await doc.blobSync.get(sourceId);
@@ -98,9 +85,8 @@ export async function getAttachmentBlob(model: AttachmentBlockModel) {
 export async function checkAttachmentBlob(block: AttachmentBlockComponent) {
   const model = block.model;
   const { id } = model;
-  const { sourceId } = model.props;
 
-  if (isAttachmentUploading(id)) {
+  if (attachmentUploads.has(id)) {
     block.loading = true;
     block.error = false;
     block.allowEmbed = false;
@@ -111,15 +97,13 @@ export async function checkAttachmentBlob(block: AttachmentBlockComponent) {
     return;
   }
 
-  try {
-    if (!sourceId) {
-      return;
-    }
+  const { sourceId } = model.props;
 
+  if (!sourceId) return;
+
+  try {
     const blob = await getAttachmentBlob(model);
-    if (!blob) {
-      return;
-    }
+    if (!blob) return;
 
     block.loading = false;
     block.error = false;
@@ -147,13 +131,13 @@ export async function checkAttachmentBlob(block: AttachmentBlockComponent) {
  */
 export function downloadAttachmentBlob(block: AttachmentBlockComponent) {
   const { host, model, loading, error, downloading, blobUrl } = block;
-  if (downloading) {
-    toast(host, 'Download in progress...');
+  if (loading) {
+    toast(host, 'Please wait, file is loading...');
     return;
   }
 
-  if (loading) {
-    toast(host, 'Please wait, file is loading...');
+  if (downloading) {
+    toast(host, 'Download in progress...');
     return;
   }
 
@@ -211,7 +195,7 @@ export async function addSiblingAttachmentBlocks(
   std: BlockStdScope,
   files: File[],
   targetModel: BlockModel,
-  place: 'before' | 'after' = 'after',
+  placement: 'before' | 'after' = 'after',
   isEmbed?: boolean
 ) {
   if (!files.length) return;
@@ -241,7 +225,7 @@ export async function addSiblingAttachmentBlocks(
   const blockIds = doc.addSiblingBlocks(
     targetModel,
     droppedInfos.map(info => info.props),
-    place
+    placement
   );
 
   const uploadPromises = blockIds.map(async (blockId, index) => {
@@ -257,7 +241,7 @@ export async function addAttachments(
   std: BlockStdScope,
   files: File[],
   point?: IVec,
-  transformPoint?: boolean // determines whether we should use `toModelCoord` to convert the point
+  shouldTransform?: boolean // determines whether we should use `toModelCoord` to convert the point
 ): Promise<string[]> {
   if (!files.length) return [];
 
@@ -266,15 +250,15 @@ export async function addAttachments(
   const gfx = std.get(GfxControllerIdentifier);
   let { x, y } = gfx.viewport.center;
   if (point) {
-    let transform = transformPoint ?? true;
-    if (transform) {
+    shouldTransform = shouldTransform ?? true;
+    if (shouldTransform) {
       [x, y] = gfx.viewport.toModelCoord(...point);
     } else {
       [x, y] = point;
     }
   }
 
-  const xy = [x, y];
+  point = [x, y];
   const style = 'cubeThick';
   const gap = 32;
   const width = EMBED_CARD_WIDTH.cubeThick;
@@ -282,7 +266,7 @@ export async function addAttachments(
 
   const droppedInfos = files.map((file, index) => {
     const { name, size } = file;
-    const center = Vec.addScalar(xy, index * gap);
+    const center = Vec.addScalar(point, index * gap);
     const xywh = Bound.fromCenter(center, width, height).serialize();
     const props = {
       style,

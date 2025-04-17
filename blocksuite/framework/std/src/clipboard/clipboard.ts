@@ -78,38 +78,31 @@ export class Clipboard extends LifeCycleWatcher {
     );
     for (const { adapter, mimeType } of byPriority) {
       const item = getItem(mimeType);
+
+      if (!item) continue;
+
       if (Array.isArray(item)) {
         if (item.length === 0) {
           continue;
         }
-        if (
-          // if all files are not the same target type, fallback to */*
-          !item
-            .map(f => f.type === mimeType || mimeType === '*/*')
-            .reduce((a, b) => a && b, true)
-        ) {
+
+        // if all files are not the same target type
+        if (mimeType !== '*/*' && item.some(f => f.type !== mimeType)) {
           continue;
         }
       }
-      if (item) {
-        const job = this._getJob();
-        const adapterInstance = new adapter(job, this.std.store.provider);
-        const payload = {
-          file: item,
-          assets: job.assetsManager,
-          workspaceId: doc.workspace.id,
-          pageId: doc.id,
-        };
-        const result = await adapterInstance.toSlice(
-          payload,
-          doc,
-          parent,
-          index
-        );
-        if (result) {
-          return result;
-        }
-      }
+
+      const job = this._getJob();
+      const adapterInstance = new adapter(job, this.std.provider);
+      const payload = {
+        file: item,
+        assets: job.assetsManager,
+        workspaceId: doc.workspace.id,
+        pageId: doc.id,
+      };
+      const result = await adapterInstance.toSlice(payload, doc, parent, index);
+
+      if (result) return result;
     }
     return null;
   };

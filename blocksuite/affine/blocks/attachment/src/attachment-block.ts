@@ -1,9 +1,6 @@
 import { getEmbedCardIcons } from '@blocksuite/affine-block-embed';
 import { CaptionedBlockComponent } from '@blocksuite/affine-components/caption';
-import {
-  AttachmentIcon16,
-  getAttachmentFileIcon,
-} from '@blocksuite/affine-components/icons';
+import { getAttachmentFileIcon } from '@blocksuite/affine-components/icons';
 import { Peekable } from '@blocksuite/affine-components/peek';
 import { toast } from '@blocksuite/affine-components/toast';
 import {
@@ -12,12 +9,16 @@ import {
 } from '@blocksuite/affine-model';
 import { ThemeProvider } from '@blocksuite/affine-shared/services';
 import { humanFileSize } from '@blocksuite/affine-shared/utils';
+import { AttachmentIcon, UpgradeIcon } from '@blocksuite/icons/lit';
 import { BlockSelection } from '@blocksuite/std';
 import { Slice } from '@blocksuite/store';
-import { html } from 'lit';
+import { type BlobState } from '@blocksuite/sync';
+import { effect, signal } from '@preact/signals-core';
+import { html, type TemplateResult } from 'lit';
 import { property } from 'lit/decorators.js';
-import { classMap } from 'lit/directives/class-map.js';
+import { type ClassInfo,classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
+import { when } from 'lit/directives/when.js';
 
 import { AttachmentEmbedProvider } from './embed';
 import { styles } from './styles';
@@ -32,6 +33,8 @@ export class AttachmentBlockComponent extends CaptionedBlockComponent<Attachment
   static override styles = styles;
 
   blockDraggable = true;
+
+  blobState$ = signal<Partial<BlobState & { loading: boolean }>>({});
 
   protected containerStyleMap = styleMap({
     position: 'relative',
@@ -116,9 +119,30 @@ export class AttachmentBlockComponent extends CaptionedBlockComponent<Attachment
       }
     });
 
-    // Workaround for https://github.com/toeverything/blocksuite/issues/4724
     this.disposables.add(
-      this.std.get(ThemeProvider).theme$.subscribe(() => this.requestUpdate())
+      effect(() => {
+        const blobId = this.model.props.sourceId$.value;
+        if (!blobId) {
+          this.blobState$.value = { uploading: true };
+          return;
+        }
+
+        const blobState$ = this.std.store.blobSync.blobState$(blobId);
+        if (!blobState$) return;
+
+        const subscription = blobState$.subscribe(state => {
+          this.blobState$.value = {
+            uploading: state.uploading,
+            errorMessage: state.errorMessage,
+            overSize: state.overSize,
+          };
+        });
+
+        return () => {
+          subscription.unsubscribe();
+          console.log('unsubscribe');
+        };
+      })
     );
   }
 
@@ -145,53 +169,123 @@ export class AttachmentBlockComponent extends CaptionedBlockComponent<Attachment
     }
   }
 
+  protected renderWithHorizontal(
+    classInfo: ClassInfo,
+    icon: TemplateResult,
+    title: string,
+    description: string,
+    kind: TemplateResult
+  ) {
+    return html`<div class=${classMap(classInfo)}>
+      <div class="affine-attachment-content">
+        <div class="affine-attachment-content-title">
+          <div class="affine-attachment-content-title-icon">${icon}</div>
+
+          <div class="affine-attachment-content-title-text truncate">
+            ${title}
+          </div>
+        </div>
+
+        <div class="affine-attachment-content-description">
+          <div class="affine-attachment-content-info truncate">
+            ${description}
+          </div>
+          <button class="affine-attachment-content-button">
+            ${UpgradeIcon()} Upgrade
+          </button>
+        </div>
+      </div>
+
+      <div class="affine-attachment-banner">${kind}</div>
+    </div>`;
+  }
+
+  protected renderWithVertical(
+    classInfo: ClassInfo,
+    icon: TemplateResult,
+    title: string,
+    description: string,
+    kind: TemplateResult
+  ) {
+    return html`<div class=${classMap(classInfo)}>
+      <div class="affine-attachment-content">
+        <div class="affine-attachment-content-title">
+          <div class="affine-attachment-content-title-icon">${icon}</div>
+
+          <div class="affine-attachment-content-title-text truncate">
+            ${title}
+          </div>
+        </div>
+
+        <div class="affine-attachment-content-info truncate">
+          ${description}
+        </div>
+      </div>
+
+      <div class="affine-attachment-banner">
+        ${kind}
+        <button class="affine-attachment-content-button">
+          ${UpgradeIcon()} Upgrade
+        </button>
+      </div>
+    </div>`;
+  }
+
   override renderBlock() {
     const { name, size, style } = this.model.props;
     const cardStyle = style ?? AttachmentBlockStyles[1];
 
-    const theme = this.std.get(ThemeProvider).theme;
+    const theme = this.std.get(ThemeProvider).theme$.value;
     const { LoadingIcon } = getEmbedCardIcons(theme);
 
-    const titleIcon = this.loading ? LoadingIcon : AttachmentIcon16;
-    const titleText = this.loading ? 'Loading...' : name;
-    const infoText = this.error ? 'File loading failed.' : humanFileSize(size);
+    const classInfo = {
+      'affine-attachment-card': true,
+      [cardStyle]: true,
+      loading: this.loading,
+      error: this.error,
+      unsynced: false,
+    };
+
+    const icon = this.loading ? LoadingIcon : AttachmentIcon();
+    const title = this.loading ? 'Loading...' : name;
+    const description = this.error
+      ? 'File loading failed.'
+      : humanFileSize(size);
 
     const fileType = name.split('.').pop() ?? '';
-    const FileTypeIcon = getAttachmentFileIcon(fileType);
+    const kind = getAttachmentFileIcon(fileType);
 
     const embedView = this.embedView;
 
     return html`
       <div class="affine-attachment-container" style=${this.containerStyleMap}>
-        ${embedView
-          ? html`<div class="affine-attachment-embed-container">
+        ${when(
+          embedView,
+          () =>
+            html`<div class="affine-attachment-embed-container">
               ${embedView}
-            </div>`
-          : html`<div
-              class=${classMap({
-                'affine-attachment-card': true,
-                [cardStyle]: true,
-                loading: this.loading,
-                error: this.error,
-                unsynced: false,
-              })}
-            >
-              <div class="affine-attachment-content">
-                <div class="affine-attachment-content-title">
-                  <div class="affine-attachment-content-title-icon">
-                    ${titleIcon}
-                  </div>
-
-                  <div class="affine-attachment-content-title-text">
-                    ${titleText}
-                  </div>
-                </div>
-
-                <div class="affine-attachment-content-info">${infoText}</div>
-              </div>
-
-              <div class="affine-attachment-banner">${FileTypeIcon}</div>
-            </div>`}
+            </div>`,
+          () =>
+            when(
+              cardStyle === 'cubeThick',
+              () =>
+                this.renderWithVertical(
+                  classInfo,
+                  icon,
+                  title,
+                  description,
+                  kind
+                ),
+              () =>
+                this.renderWithHorizontal(
+                  classInfo,
+                  icon,
+                  title,
+                  description,
+                  kind
+                )
+            )
+        )}
       </div>
     `;
   }
