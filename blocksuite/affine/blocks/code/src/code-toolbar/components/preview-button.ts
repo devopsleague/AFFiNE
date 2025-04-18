@@ -1,10 +1,11 @@
 import { unsafeCSSVarV2 } from '@blocksuite/affine-shared/theme';
 import { SignalWatcher, WithDisposable } from '@blocksuite/global/lit';
-import { css, html, LitElement } from 'lit';
+import { css, html, LitElement, nothing } from 'lit';
 import { property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import type { CodeBlockComponent } from '../../code-block';
+import { CodeBlockPreviewIdentifier } from '../../preview/code-preview-extension';
 
 export class PreviewButton extends WithDisposable(SignalWatcher(LitElement)) {
   static override styles = css`
@@ -61,6 +62,12 @@ export class PreviewButton extends WithDisposable(SignalWatcher(LitElement)) {
   }
 
   override render() {
+    const lang = this.blockComponent.model.props.language$.value ?? '';
+    const previewContext = this.blockComponent.std.getOptional(
+      CodeBlockPreviewIdentifier(lang)
+    );
+    if (!previewContext) return nothing;
+
     return html`
       <div class="preview-toggle-container">
         <div
