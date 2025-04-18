@@ -55,6 +55,7 @@ import { configureThemeEditorModule } from './theme-editor';
 import { configureUrlModule } from './url';
 import { configureUserspaceModule } from './userspace';
 import { configureWorkspaceModule } from './workspace';
+import { configureIndexerEmbeddingModule } from '../blocksuite/ai/settings/indexer-embedding';
 
 export function configureCommonModules(framework: Framework) {
   configureI18nModule(framework);
@@ -108,4 +109,5 @@ export function configureCommonModules(framework: Framework) {
   configureImportClipperModule(framework);
   configureNotificationModule(framework);
   configureIntegrationModule(framework);
+  configureIndexerEmbeddingModule(framework);
 }
