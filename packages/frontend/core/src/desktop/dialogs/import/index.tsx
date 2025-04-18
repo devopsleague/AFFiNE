@@ -241,6 +241,7 @@ const ImportOptionItem = ({
   suffixTooltip,
   type,
   onImport,
+  ...props
 }: {
   label: string;
   prefixIcon: ReactElement<SVGAttributes<SVGElement>>;
@@ -251,7 +252,7 @@ const ImportOptionItem = ({
 }) => {
   const t = useI18n();
   return (
-    <div className={style.importItem} onClick={() => onImport(type)}>
+    <div className={style.importItem} onClick={() => onImport(type)} {...props}>
       {prefixIcon}
       <div className={style.importItemLabel}>{t[label]()}</div>
       {suffixIcon && (
@@ -292,9 +293,9 @@ const ImportOptions = ({
               suffixIcon={suffixIcon}
               suffixTooltip={suffixTooltip}
               label={label}
-              data-testid={testId}
               type={type}
               onImport={onImport}
+              data-testid={testId}
             />
           )
         )}

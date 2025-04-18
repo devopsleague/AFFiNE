@@ -4,6 +4,7 @@ import { EmbedSyncedDocModel } from '@blocksuite/affine-model';
 import {
   ActionPlacement,
   EditorSettingProvider,
+  FeatureFlagService,
   type LinkEventType,
   type OpenDocMode,
   type ToolbarAction,
@@ -142,7 +143,12 @@ const conversionsActionGroup = {
       label: 'Card view',
       run(ctx) {
         const block = ctx.getCurrentBlockByType(EmbedSyncedDocBlockComponent);
-        if (isGfxBlockComponent(block)) {
+        if (
+          ctx.std
+            .get(FeatureFlagService)
+            .getFlag('enable_embed_doc_with_alias') &&
+          isGfxBlockComponent(block)
+        ) {
           const editorSetting = ctx.std.getOptional(EditorSettingProvider);
           editorSetting?.set?.(
             'docDropCanvasPreferView',

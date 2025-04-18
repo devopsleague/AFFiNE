@@ -701,6 +701,10 @@ export const USER_FRIENDLY_ERRORS = {
     message: ({ contextId, content, message }) =>
       `Failed to match context ${contextId} with "${escape(content)}": ${message}`,
   },
+  copilot_embedding_disabled: {
+    type: 'action_forbidden',
+    message: `Embedding feature is disabled, please contact the administrator to enable it in the workspace settings.`,
+  },
   copilot_embedding_unavailable: {
     type: 'action_forbidden',
     message: `Embedding feature not available, you may need to install pgvector extension to your database`,

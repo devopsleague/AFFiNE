@@ -29,6 +29,7 @@ import {
 import { isPeekable, peek } from '@blocksuite/affine/components/peek';
 import { toast } from '@blocksuite/affine/components/toast';
 import {
+  EditorChevronDown,
   type MenuContext,
   type MenuItemGroup,
 } from '@blocksuite/affine/components/toolbar';
@@ -72,7 +73,6 @@ import {
 } from '@blocksuite/affine/std/gfx';
 import type { ExtensionType } from '@blocksuite/affine/store';
 import {
-  ArrowDownSmallIcon,
   CopyAsImgaeIcon,
   CopyIcon,
   EditIcon,
@@ -615,7 +615,7 @@ function createSurfaceRefToolbarConfig(baseUrl?: string): ToolbarModuleConfig {
                 .iconSize=${'16px'}
                 .iconContainerPadding=${4}
               >
-                ${OpenInNewIcon()} ${ArrowDownSmallIcon()}
+                ${OpenInNewIcon()} ${EditorChevronDown}
               </editor-icon-button>`}
             >
               <div data-orientation="vertical" style=${styles}>

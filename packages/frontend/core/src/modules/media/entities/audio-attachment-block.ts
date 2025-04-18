@@ -172,7 +172,11 @@ export class AudioAttachmentBlock extends Entity<AttachmentBlockModel> {
   ) => {
     this.props.props.caption = result.title ?? '';
 
-    const addCalloutBlock = (emoji: string, title: string) => {
+    const addCalloutBlock = (
+      emoji: string,
+      title: string,
+      collapsed: boolean = false
+    ) => {
       const calloutId = this.props.doc.addBlock(
         'affine:callout',
         {
@@ -184,6 +188,7 @@ export class AudioAttachmentBlock extends Entity<AttachmentBlockModel> {
         'affine:paragraph',
         {
           type: 'h6',
+          collapsed,
           text: new Text([
             {
               insert: title,
@@ -195,7 +200,7 @@ export class AudioAttachmentBlock extends Entity<AttachmentBlockModel> {
       return calloutId;
     };
     const fillTranscription = (segments: TranscriptionResult['segments']) => {
-      const calloutId = addCalloutBlock('💬', 'Transcript');
+      const calloutId = addCalloutBlock('💬', 'Transcript', true);
 
       const speakerToColors = new Map<string, string>();
       for (const segment of segments) {

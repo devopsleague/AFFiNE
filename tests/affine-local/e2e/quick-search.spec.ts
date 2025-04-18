@@ -484,7 +484,7 @@ test('can use @ to open quick search to search for doc and insert into canvas', 
   ).toBeVisible();
   await expect(
     page.locator('.affine-embed-linked-doc-content-title')
-  ).toContainText('Write, Draw, Plan all at Once');
+  ).toContainText('Getting Started');
 
   // focus on the note block
   await page.waitForTimeout(500);
@@ -514,7 +514,7 @@ test('can paste a doc link to create link reference', async ({ page }) => {
   // check the link reference
   await page.waitForTimeout(500);
   await expect(
-    page.locator('affine-reference:has-text("Write, Draw, Plan all at Once.")')
+    page.locator('affine-reference:has-text("Getting Started")')
   ).toBeVisible();
 
   // can ctrl-z to revert to normal link

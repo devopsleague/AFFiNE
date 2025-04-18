@@ -260,6 +260,15 @@ export const AFFINE_FLAGS = {
       'https://discord.com/channels/959027316334407691/1358384103925350542',
     defaultState: false,
   },
+  // TODO(@L-Sun): remove this flag after the feature is released
+  enable_embed_doc_with_alias: {
+    category: 'blocksuite',
+    bsFlag: 'enable_embed_doc_with_alias',
+    displayName: 'Embed doc with alias',
+    description: 'Embed doc with alias',
+    configurable: isCanaryBuild,
+    defaultState: isCanaryBuild,
+  },
 } satisfies { [key in string]: FlagInfo };
 
 // oxlint-disable-next-line no-redeclare

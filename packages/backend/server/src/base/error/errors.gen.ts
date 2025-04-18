@@ -759,6 +759,12 @@ export class CopilotFailedToMatchContext extends UserFriendlyError {
   }
 }
 
+export class CopilotEmbeddingDisabled extends UserFriendlyError {
+  constructor(message?: string) {
+    super('action_forbidden', 'copilot_embedding_disabled', message);
+  }
+}
+
 export class CopilotEmbeddingUnavailable extends UserFriendlyError {
   constructor(message?: string) {
     super('action_forbidden', 'copilot_embedding_unavailable', message);
@@ -1037,6 +1043,7 @@ export enum ErrorNames {
   COPILOT_CONTEXT_FILE_NOT_SUPPORTED,
   COPILOT_FAILED_TO_MODIFY_CONTEXT,
   COPILOT_FAILED_TO_MATCH_CONTEXT,
+  COPILOT_EMBEDDING_DISABLED,
   COPILOT_EMBEDDING_UNAVAILABLE,
   COPILOT_TRANSCRIPTION_JOB_EXISTS,
   COPILOT_TRANSCRIPTION_JOB_NOT_FOUND,

@@ -74,6 +74,7 @@ export interface DocDisplayConfig {
     signal: Signal<Collection[]>;
     cleanup: () => void;
   };
+  getCollectionPageIds: (collectionId: string) => string[];
 }
 
 export interface SearchMenuConfig {

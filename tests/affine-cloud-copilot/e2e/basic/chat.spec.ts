@@ -359,4 +359,63 @@ test.describe('AIBasic/Chat', () => {
       expect(clipboardText).toBe(content);
     }).toPass({ timeout: 5000 });
   });
+
+  test('chat with ask ai input in page mode', async ({
+    loggedInPage: page,
+    utils,
+  }) => {
+    await utils.chatPanel.closeChatPanel(page);
+    await utils.editor.askAIWithText(
+      page,
+      'AFFiNE is an open source all in one workspace.'
+    );
+    await page.keyboard.type('Translate to chinese');
+
+    const sendButton = await page.getByTestId('ai-panel-input-send');
+    await expect(sendButton).toHaveAttribute('data-active', 'true');
+    await sendButton.click();
+
+    await expect(page.getByTestId('sidebar-tab-content-chat')).toBeVisible();
+    await utils.chatPanel.waitForHistory(page, [
+      {
+        role: 'user',
+        content:
+          'AFFiNE is an open source all in one workspace.\nTranslate to chinese',
+      },
+      {
+        role: 'assistant',
+        status: 'success',
+      },
+    ]);
+  });
+
+  test('chat with ask ai input in edgeless mode', async ({
+    loggedInPage: page,
+    utils,
+  }) => {
+    await utils.chatPanel.closeChatPanel(page);
+    await utils.editor.askAIWithEdgeless(page, async () => {
+      await utils.editor.createShape(page, 'HelloWorld');
+    });
+    await page.waitForTimeout(1000);
+    await page.keyboard.type('What color is it?');
+
+    await page.waitForTimeout(1000);
+    const sendButton = await page.getByTestId('ai-panel-input-send');
+    await expect(sendButton).toHaveAttribute('data-active', 'true');
+    await sendButton.click();
+
+    await expect(page.getByTestId('sidebar-tab-content-chat')).toBeVisible();
+    expect(await page.locator('chat-content-images')).toBeVisible();
+    await utils.chatPanel.waitForHistory(page, [
+      {
+        role: 'user',
+        content: 'What color is it?',
+      },
+      {
+        role: 'assistant',
+        status: 'success',
+      },
+    ]);
+  });
 });

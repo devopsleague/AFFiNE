@@ -13,6 +13,7 @@ import {
   ActionPlacement,
   DocDisplayMetaProvider,
   EditorSettingProvider,
+  FeatureFlagService,
   type LinkEventType,
   type OpenDocMode,
   type ToolbarAction,
@@ -215,7 +216,12 @@ const conversionsActionGroup = {
       run(ctx) {
         const block = ctx.getCurrentBlockByType(EmbedLinkedDocBlockComponent);
 
-        if (isGfxBlockComponent(block)) {
+        if (
+          ctx.std
+            .get(FeatureFlagService)
+            .getFlag('enable_embed_doc_with_alias') &&
+          isGfxBlockComponent(block)
+        ) {
           const editorSetting = ctx.std.getOptional(EditorSettingProvider);
           editorSetting?.set?.(
             'docDropCanvasPreferView',

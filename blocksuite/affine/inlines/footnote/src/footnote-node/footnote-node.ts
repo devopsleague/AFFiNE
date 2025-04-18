@@ -17,7 +17,7 @@ import {
   ZERO_WIDTH_FOR_EMPTY_LINE,
 } from '@blocksuite/std/inline';
 import type { DeltaInsert } from '@blocksuite/store';
-import { shift } from '@floating-ui/dom';
+import { flip, offset, shift } from '@floating-ui/dom';
 import { baseTheme } from '@toeverything/theme';
 import { css, html, nothing, unsafeCSS } from 'lit';
 import { property } from 'lit/decorators.js';
@@ -28,6 +28,8 @@ import type { FootNoteNodeConfigProvider } from './footnote-config';
 
 // Virtual padding for the footnote popup overflow detection offsets.
 const POPUP_SHIFT_PADDING = 8;
+// The offset between the footnote node and the popup.
+const POPUP_OFFSET = 4;
 
 export class AffineFootnoteNode extends WithDisposable(ShadowlessElement) {
   static override styles = css`
@@ -110,6 +112,10 @@ export class AffineFootnoteNode extends WithDisposable(ShadowlessElement) {
     return this.delta.attributes?.footnote;
   }
 
+  get readonly() {
+    return this.std.store.readonly;
+  }
+
   onFootnoteClick = () => {
     if (!this.footnote) {
       return;
@@ -131,6 +137,10 @@ export class AffineFootnoteNode extends WithDisposable(ShadowlessElement) {
   };
 
   private readonly _handleDocReference = (docId: string) => {
+    if (this.readonly) {
+      return;
+    }
+
     this.std
       .getOptional(PeekViewProvider)
       ?.peek({
@@ -195,12 +205,16 @@ export class AffineFootnoteNode extends WithDisposable(ShadowlessElement) {
 
       return {
         template: this._FootNotePopup(footnote, abortController),
-        container: this,
+        container: this.std.host,
         computePosition: {
           referenceElement: this,
           placement: 'top',
           autoUpdate: true,
-          middleware: [shift({ padding: POPUP_SHIFT_PADDING })],
+          middleware: [
+            shift({ padding: POPUP_SHIFT_PADDING }),
+            flip(),
+            offset(POPUP_OFFSET),
+          ],
         },
       };
     },

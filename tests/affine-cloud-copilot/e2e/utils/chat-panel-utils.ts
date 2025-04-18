@@ -38,6 +38,13 @@ export class ChatPanelUtils {
     await this.disableNetworkSearch(page);
   }
 
+  public static async closeChatPanel(page: Page) {
+    await page.getByTestId('right-sidebar-toggle').click({
+      delay: 200,
+    });
+    await expect(page.getByTestId('sidebar-tab-content-chat')).toBeHidden();
+  }
+
   public static async typeChat(page: Page, content: string) {
     await page.getByTestId('chat-panel-input').focus();
     await page.keyboard.type(content);

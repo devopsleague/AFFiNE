@@ -12,10 +12,9 @@ import {
 } from '@blocksuite/affine-shared/services';
 import { unsafeCSSVar, unsafeCSSVarV2 } from '@blocksuite/affine-shared/theme';
 import { SignalWatcher, WithDisposable } from '@blocksuite/global/lit';
-import { DualLinkIcon, LinkIcon } from '@blocksuite/icons/lit';
 import type { BlockStdScope } from '@blocksuite/std';
 import { computed, signal } from '@preact/signals-core';
-import { css, html, LitElement, type TemplateResult } from 'lit';
+import { css, html, LitElement } from 'lit';
 import { property } from 'lit/decorators.js';
 
 import type { FootNotePopupClickHandler } from './footnote-config';
@@ -56,35 +55,10 @@ export class FootNotePopup extends SignalWatcher(WithDisposable(LitElement)) {
       }
 
       const favicon = this._linkPreview$.value?.favicon;
-      if (!favicon) {
-        return undefined;
-      }
-
-      const titleIconType =
-        favicon.split('.').pop() === 'svg'
-          ? 'svg+xml'
-          : favicon.split('.').pop();
-      const titleIcon = html`<object
-        type="image/${titleIconType}"
-        data=${favicon}
-        draggable="false"
-      >
-        ${WebIcon16}
-      </object>`;
-      return titleIcon;
+      return favicon ? html`<img src=${favicon} alt="favicon" />` : WebIcon16;
     }
     return undefined;
   });
-
-  private readonly _suffixIcon = (): TemplateResult | undefined => {
-    const referenceType = this.footnote.reference.type;
-    if (referenceType === 'doc') {
-      return DualLinkIcon({ width: '16px', height: '16px' });
-    } else if (referenceType === 'url') {
-      return LinkIcon({ width: '16px', height: '16px' });
-    }
-    return undefined;
-  };
 
   private readonly _popupLabel$ = computed(() => {
     const referenceType = this.footnote.reference.type;
@@ -157,7 +131,6 @@ export class FootNotePopup extends SignalWatcher(WithDisposable(LitElement)) {
         <footnote-popup-chip
           .prefixIcon=${this._prefixIcon$.value}
           .label=${this._popupLabel$.value}
-          .suffixIcon=${this._suffixIcon()}
           .onClick=${this._onChipClick}
           .tooltip=${this._tooltip$.value}
         ></footnote-popup-chip>
