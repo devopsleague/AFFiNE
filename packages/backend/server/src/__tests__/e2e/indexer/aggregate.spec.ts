@@ -14,7 +14,13 @@ e2e('should aggregate by docId', async t => {
   });
 
   const docIds = [randomUUID(), randomUUID(), randomUUID()];
-  const blockIds = [randomUUID(), randomUUID(), randomUUID(), randomUUID()];
+  const blockIds = [
+    randomUUID(),
+    randomUUID(),
+    randomUUID(),
+    randomUUID(),
+    randomUUID(),
+  ];
   const indexerService = app.get(IndexerService);
 
   await indexerService.write(
@@ -42,12 +48,12 @@ e2e('should aggregate by docId', async t => {
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      // affine:page, blockId is null
       {
         docId: docIds[0],
         workspaceId: workspace.id,
         content: 'test1 hello title',
         flavour: 'affine:page',
+        blockId: blockIds[2],
         createdByUserId: owner.id,
         updatedByUserId: owner.id,
         createdAt: new Date(),
@@ -56,9 +62,9 @@ e2e('should aggregate by docId', async t => {
       {
         docId: docIds[1],
         workspaceId: workspace.id,
-        content: 'test2 hello hello',
+        content: 'test2 hello hello hello hello hello hello',
         flavour: 'affine:text',
-        blockId: blockIds[2],
+        blockId: blockIds[3],
         refDocId: docIds[0],
         ref: ['{"foo": "bar1"}'],
         createdByUserId: owner.id,
@@ -71,7 +77,7 @@ e2e('should aggregate by docId', async t => {
         workspaceId: workspace.id,
         content: 'test3 hello world',
         flavour: 'affine:text',
-        blockId: blockIds[3],
+        blockId: blockIds[4],
         refDocId: docIds[0],
         ref: ['{"foo": "bar2"}'],
         createdByUserId: owner.id,
@@ -101,7 +107,7 @@ e2e('should aggregate by docId', async t => {
               // @ts-expect-error allow to use string as enum
               type: 'match',
               field: 'content',
-              match: 'hello',
+              match: 'hello hello',
             },
             {
               // @ts-expect-error allow to use string as enum
@@ -113,7 +119,7 @@ e2e('should aggregate by docId', async t => {
                   // @ts-expect-error allow to use string as enum
                   type: 'match',
                   field: 'content',
-                  match: 'hello',
+                  match: 'hello hello',
                 },
                 {
                   // @ts-expect-error allow to use string as enum
@@ -168,6 +174,7 @@ e2e('should aggregate by docId', async t => {
           {
             fields: {
               flavour: ['affine:page'],
+              blockId: [blockIds[2]],
             },
             highlights: {
               content: ['test1 <b>hello</b> title'],
@@ -192,11 +199,11 @@ e2e('should aggregate by docId', async t => {
         nodes: [
           {
             fields: {
-              blockId: [blockIds[2]],
+              blockId: [blockIds[3]],
               flavour: ['affine:text'],
             },
             highlights: {
-              content: ['test2 <b>hello hello</b>'],
+              content: ['test2 <b>hello hello hello hello hello hello</b>'],
             },
           },
         ],
@@ -209,7 +216,7 @@ e2e('should aggregate by docId', async t => {
         nodes: [
           {
             fields: {
-              blockId: [blockIds[3]],
+              blockId: [blockIds[4]],
               flavour: ['affine:text'],
             },
             highlights: {

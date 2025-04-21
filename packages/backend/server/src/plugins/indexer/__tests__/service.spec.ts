@@ -7,8 +7,9 @@ import { createModule } from '../../../__tests__/create-module';
 import { Mockers } from '../../../__tests__/mocks';
 import { ServerConfigModule } from '../../../core/config';
 import { IndexerModule, IndexerService } from '..';
+import { SearchProviderName } from '../config';
 import { SearchProviderFactory } from '../factory';
-import { ManticoresearchProvider } from '../providers';
+import { ElasticsearchProvider, ManticoresearchProvider } from '../providers';
 import { SearchTable } from '../tables';
 import {
   AggregateInput,
@@ -24,10 +25,23 @@ const module = await createModule({
 const indexerService = module.get(IndexerService);
 const searchProviderFactory = module.get(SearchProviderFactory);
 const manticoresearch = module.get(ManticoresearchProvider);
+const elasticsearch = module.get(ElasticsearchProvider);
 const user = await module.create(Mockers.User);
+const workspace = await module.create(Mockers.Workspace);
+const providerName =
+  process.env.AFFINE_INDEXER_SEARCH_PROVIDER ??
+  SearchProviderName.Manticoresearch;
+const isManticoresearch = providerName === SearchProviderName.Manticoresearch;
+const searchProvider = isManticoresearch ? manticoresearch : elasticsearch;
+const docSort = isManticoresearch
+  ? ['_score', { updated_at: 'desc' }, 'id']
+  : ['_score', { updated_at: 'desc' }, 'doc_id'];
+const blockSort = isManticoresearch
+  ? ['_score', { updated_at: 'desc' }, 'id']
+  : ['_score', { updated_at: 'desc' }, 'doc_id', 'block_id'];
 
 mock.method(searchProviderFactory, 'get', () => {
-  return manticoresearch;
+  return searchProvider;
 });
 
 test.after.always(async () => {
@@ -38,14 +52,40 @@ test.before(async () => {
   await indexerService.createTables();
 });
 
+test.afterEach.always(async () => {
+  await indexerService.deleteByQuery(
+    SearchTable.doc,
+    {
+      type: SearchQueryType.match,
+      field: 'workspaceId',
+      match: workspace.id,
+    },
+    {
+      refresh: true,
+    }
+  );
+  await indexerService.deleteByQuery(
+    SearchTable.block,
+    {
+      type: SearchQueryType.match,
+      field: 'workspaceId',
+      match: workspace.id,
+    },
+    {
+      refresh: true,
+    }
+  );
+});
+
 // #region write()
 
 test('should write throw error when field type wrong', async t => {
   await t.throwsAsync(
     indexerService.write(SearchTable.block, [
       {
-        workspaceId: 'workspaceId1',
+        workspaceId: workspace.id,
         docId: 'docId1',
+        blockId: randomUUID(),
         createdByUserId: user.id,
         updatedByUserId: user.id,
         createdAt: new Date(),
@@ -60,6 +100,157 @@ test('should write throw error when field type wrong', async t => {
       message: /ref_doc_id/,
     }
   );
+});
+
+test('should write block with array content work', async t => {
+  const docId = randomUUID();
+  const blockId = randomUUID();
+  await indexerService.write(
+    SearchTable.block,
+    [
+      {
+        workspaceId: workspace.id,
+        docId,
+        blockId,
+        content: ['hello', 'world'],
+        flavour: 'affine:page',
+        createdByUserId: user.id,
+        updatedByUserId: user.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ],
+    {
+      refresh: true,
+    }
+  );
+  const result = await indexerService.search({
+    table: SearchTable.block,
+    query: {
+      type: SearchQueryType.boolean,
+      occur: SearchQueryOccur.must,
+      queries: [
+        {
+          type: SearchQueryType.match,
+          field: 'workspaceId',
+          match: workspace.id,
+        },
+        {
+          type: SearchQueryType.match,
+          field: 'content',
+          match: 'hello world',
+        },
+      ],
+    },
+    options: {
+      fields: ['content'],
+    },
+  });
+  t.is(result.total, 1);
+  t.is(result.nodes.length, 1);
+  if (isManticoresearch) {
+    t.deepEqual(result.nodes[0].fields, {
+      content: ['hello world'],
+    });
+  } else {
+    t.deepEqual(result.nodes[0].fields, {
+      content: ['hello', 'world'],
+    });
+  }
+});
+
+test('should write 10k docs work', async t => {
+  const docCount = 10000;
+  const docs = [];
+  for (let i = 0; i < docCount; i++) {
+    docs.push({
+      workspaceId: workspace.id,
+      docId: randomUUID(),
+      title: `hello world ${i} ${randomUUID()}`,
+      summary: `this is a test ${i} ${randomUUID()}`,
+      createdByUserId: user.id,
+      updatedByUserId: user.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+  await indexerService.write(SearchTable.doc, docs);
+  // cleanup
+  await indexerService.deleteByQuery(
+    SearchTable.doc,
+    {
+      type: SearchQueryType.match,
+      field: 'workspaceId',
+      match: workspace.id,
+    },
+    {
+      refresh: true,
+    }
+  );
+  t.pass();
+});
+
+test('should write ref as string[] work', async t => {
+  const docIds = [randomUUID(), randomUUID(), randomUUID()];
+  await indexerService.write(
+    SearchTable.block,
+    [
+      {
+        docId: docIds[0],
+        workspaceId: workspace.id,
+        content: 'test1',
+        flavour: 'markdown',
+        blockId: randomUUID(),
+        createdByUserId: user.id,
+        updatedByUserId: user.id,
+        createdAt: new Date('2025-04-22T00:00:00.000Z'),
+        updatedAt: new Date('2025-04-22T00:00:00.000Z'),
+      },
+      {
+        docId: docIds[1],
+        workspaceId: workspace.id,
+        content: 'test2',
+        flavour: 'markdown',
+        blockId: randomUUID(),
+        refDocId: [docIds[0]],
+        ref: ['{"foo": "bar1"}'],
+        createdByUserId: user.id,
+        updatedByUserId: user.id,
+        createdAt: new Date('2021-04-22T00:00:00.000Z'),
+        updatedAt: new Date('2021-04-22T00:00:00.000Z'),
+      },
+      {
+        docId: docIds[2],
+        workspaceId: workspace.id,
+        content: 'test3',
+        flavour: 'markdown',
+        blockId: randomUUID(),
+        refDocId: [docIds[0], docIds[2]],
+        ref: ['{"foo": "bar1"}', '{"foo": "bar3"}'],
+        createdByUserId: user.id,
+        updatedByUserId: user.id,
+        createdAt: new Date('2025-03-22T00:00:00.000Z'),
+        updatedAt: new Date('2025-03-22T00:00:00.000Z'),
+      },
+      {
+        docId: docIds[0],
+        workspaceId: workspace.id,
+        content: 'test4',
+        flavour: 'markdown',
+        blockId: randomUUID(),
+        refDocId: [docIds[0], docIds[2]],
+        ref: ['{"foo": "bar1"}', '{"foo": "bar3"}'],
+        createdByUserId: user.id,
+        updatedByUserId: user.id,
+        createdAt: new Date('2025-04-22T00:00:00.000Z'),
+        updatedAt: new Date('2025-04-22T00:00:00.000Z'),
+      },
+    ],
+    {
+      refresh: true,
+    }
+  );
+  t.pass();
 });
 
 // #endregion
@@ -77,14 +268,7 @@ test('should parse all query work', async t => {
   const result = indexerService.parseInput(input);
   t.deepEqual(result, {
     _source: ['workspace_id', 'doc_id'],
-    sort: [
-      '_score',
-      {
-        updated_at: 'desc',
-      },
-      'doc_id',
-      'block_id',
-    ],
+    sort: blockSort,
     query: {
       match_all: {},
     },
@@ -103,14 +287,7 @@ test('should parse exists query work', async t => {
   const result = indexerService.parseInput(input);
   t.deepEqual(result, {
     _source: ['workspace_id', 'doc_id'],
-    sort: [
-      '_score',
-      {
-        updated_at: 'desc',
-      },
-      'doc_id',
-      'block_id',
-    ],
+    sort: blockSort,
     query: {
       exists: {
         field: 'ref_doc_id',
@@ -139,14 +316,7 @@ test('should parse boost query work', async t => {
   const result = indexerService.parseInput(input);
   t.deepEqual(result, {
     _source: ['workspace_id', 'doc_id'],
-    sort: [
-      '_score',
-      {
-        updated_at: 'desc',
-      },
-      'doc_id',
-      'block_id',
-    ],
+    sort: blockSort,
     query: {
       match: {
         flavour: {
@@ -186,14 +356,7 @@ test('should parse match query work', async t => {
   const result = indexerService.parseInput(input);
   t.deepEqual(result, {
     _source: ['workspace_id', 'doc_id'],
-    sort: [
-      '_score',
-      {
-        updated_at: 'desc',
-      },
-      'doc_id',
-      'block_id',
-    ],
+    sort: blockSort,
     query: {
       match: {
         flavour: {
@@ -275,14 +438,7 @@ test('should parse boolean query work', async t => {
   const result = indexerService.parseInput(input as SearchInput);
   t.deepEqual(result, {
     _source: ['workspace_id', 'doc_id'],
-    sort: [
-      '_score',
-      {
-        updated_at: 'desc',
-      },
-      'doc_id',
-      'block_id',
-    ],
+    sort: blockSort,
     query: {
       bool: {
         must: [
@@ -354,14 +510,7 @@ test('should parse search input highlight work', async t => {
   const result = indexerService.parseInput(input as SearchInput);
   t.deepEqual(result, {
     _source: ['workspace_id', 'doc_id'],
-    sort: [
-      '_score',
-      {
-        updated_at: 'desc',
-      },
-      'doc_id',
-      'block_id',
-    ],
+    sort: blockSort,
     query: {
       match_all: {},
     },
@@ -394,13 +543,7 @@ test('should parse aggregate input highlight work', async t => {
   const result = indexerService.parseInput(input as AggregateInput);
   t.deepEqual(result, {
     _source: ['workspace_id', 'doc_id'],
-    sort: [
-      '_score',
-      {
-        updated_at: 'desc',
-      },
-      'doc_id',
-    ],
+    sort: docSort,
     query: {
       match_all: {},
     },
@@ -435,32 +578,37 @@ test('should parse aggregate input highlight work', async t => {
 // #region search()
 
 test('should search work', async t => {
-  const workspaceId = randomUUID();
   const docId1 = randomUUID();
   const docId2 = randomUUID();
-  await indexerService.write(SearchTable.doc, [
+  await indexerService.write(
+    SearchTable.doc,
+    [
+      {
+        workspaceId: workspace.id,
+        title: 'hello world',
+        summary: 'this is a test',
+        docId: docId1,
+        createdByUserId: user.id,
+        updatedByUserId: user.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        workspaceId: workspace.id,
+        title: '你好世界',
+        summary: '这是测试',
+        docId: docId2,
+        createdByUserId: user.id,
+        updatedByUserId: user.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ],
     {
-      workspaceId,
-      title: 'hello world',
-      summary: 'this is a test',
-      docId: docId1,
-      createdByUserId: user.id,
-      updatedByUserId: user.id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      workspaceId,
-      title: '你好世界',
-      summary: '这是测试',
-      docId: docId2,
-      createdByUserId: user.id,
-      updatedByUserId: user.id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ]);
-  const result = await indexerService.search({
+      refresh: true,
+    }
+  );
+  let result = await indexerService.search({
     table: SearchTable.doc,
     query: {
       type: SearchQueryType.boolean,
@@ -469,12 +617,12 @@ test('should search work', async t => {
         {
           type: SearchQueryType.match,
           field: 'workspaceId',
-          match: workspaceId,
+          match: workspace.id,
         },
         {
           type: SearchQueryType.match,
           field: 'title',
-          match: 'hello 你好',
+          match: 'hello hello',
         },
       ],
     },
@@ -485,10 +633,10 @@ test('should search work', async t => {
   });
   // console.log(JSON.stringify(result, null, 2));
   t.truthy(result.nextCursor);
-  t.is(result.total, 2);
-  t.is(result.nodes.length, 2);
+  t.is(result.total, 1);
+  t.is(result.nodes.length, 1);
   t.deepEqual(result.nodes[0].fields, {
-    workspaceId: [workspaceId],
+    workspaceId: [workspace.id],
     docId: [docId1],
     title: ['hello world'],
     summary: ['this is a test'],
@@ -497,22 +645,76 @@ test('should search work', async t => {
     title: ['<b>hello</b> world'],
   });
   t.deepEqual(result.nodes[0]._source, {
-    workspaceId,
+    workspaceId: workspace.id,
     docId: docId1,
   });
-  t.deepEqual(result.nodes[1].fields, {
-    workspaceId: [workspaceId],
+
+  result = await indexerService.search({
+    table: SearchTable.doc,
+    query: {
+      type: SearchQueryType.boolean,
+      occur: SearchQueryOccur.must,
+      queries: [
+        {
+          type: SearchQueryType.match,
+          field: 'workspaceId',
+          match: workspace.id,
+        },
+        {
+          type: SearchQueryType.match,
+          field: 'title',
+          match: '你好你好',
+        },
+      ],
+    },
+    options: {
+      fields: ['workspaceId', 'docId', 'title', 'summary'],
+      highlights: [{ field: 'title', before: '<b>', end: '</b>' }],
+    },
+  });
+  // console.log(JSON.stringify(result, null, 2));
+  t.truthy(result.nextCursor);
+  t.is(result.total, 1);
+  t.is(result.nodes.length, 1);
+  t.deepEqual(result.nodes[0].fields, {
+    workspaceId: [workspace.id],
     docId: [docId2],
     title: ['你好世界'],
     summary: ['这是测试'],
   });
-  t.deepEqual(result.nodes[1].highlights, {
-    title: ['<b>你好</b> 世界'],
-  });
-  t.deepEqual(result.nodes[1]._source, {
-    workspaceId,
+  if (isManticoresearch) {
+    t.deepEqual(result.nodes[0].highlights, {
+      title: ['<b>你好</b> 世界'],
+    });
+  } else {
+    t.deepEqual(result.nodes[0].highlights, {
+      title: ['<b>你</b><b>好</b>世界'],
+    });
+  }
+  t.deepEqual(result.nodes[0]._source, {
+    workspaceId: workspace.id,
     docId: docId2,
   });
+});
+
+test('should throw error when limit is greater than 10000', async t => {
+  await t.throwsAsync(
+    indexerService.search({
+      table: SearchTable.doc,
+      query: {
+        type: SearchQueryType.all,
+      },
+      options: {
+        fields: ['workspaceId', 'docId', 'title', 'summary'],
+        pagination: {
+          limit: 10001,
+        },
+      },
+    }),
+    {
+      message: 'Invalid indexer input: limit must be less than 10000',
+    }
+  );
 });
 
 // #endregion
@@ -520,45 +722,52 @@ test('should search work', async t => {
 // #region aggregate()
 
 test('should aggregate work', async t => {
-  const workspaceId = randomUUID();
   const docId1 = randomUUID();
   const docId2 = randomUUID();
   const blockId1 = randomUUID();
   const blockId2 = randomUUID();
-  await indexerService.write(SearchTable.block, [
+  const blockId3 = randomUUID();
+  await indexerService.write(
+    SearchTable.block,
+    [
+      {
+        workspaceId: workspace.id,
+        flavour: 'affine:page',
+        docId: docId1,
+        blockId: blockId3,
+        content: 'hello world, this is a title',
+        createdByUserId: user.id,
+        updatedByUserId: user.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        workspaceId: workspace.id,
+        flavour: 'affine:text',
+        docId: docId1,
+        blockId: blockId1,
+        content: 'hello world, this is a block',
+        createdByUserId: user.id,
+        updatedByUserId: user.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        workspaceId: workspace.id,
+        flavour: 'affine:text',
+        docId: docId2,
+        blockId: blockId2,
+        content: 'hello world, this is a test block',
+        createdByUserId: user.id,
+        updatedByUserId: user.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ],
     {
-      workspaceId,
-      flavour: 'affine:page',
-      docId: docId1,
-      content: 'hello world, this is a title',
-      createdByUserId: user.id,
-      updatedByUserId: user.id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      workspaceId,
-      flavour: 'affine:text',
-      docId: docId1,
-      blockId: blockId1,
-      content: 'hello world, this is a block',
-      createdByUserId: user.id,
-      updatedByUserId: user.id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      workspaceId,
-      flavour: 'affine:text',
-      docId: docId2,
-      blockId: blockId2,
-      content: 'hello world, this is a test block',
-      createdByUserId: user.id,
-      updatedByUserId: user.id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ]);
+      refresh: true,
+    }
+  );
   const result = await indexerService.aggregate({
     table: SearchTable.block,
     field: 'docId',
@@ -569,7 +778,7 @@ test('should aggregate work', async t => {
         {
           type: SearchQueryType.match,
           field: 'workspaceId',
-          match: workspaceId,
+          match: workspace.id,
         },
         {
           type: SearchQueryType.boolean,
@@ -617,8 +826,9 @@ test('should aggregate work', async t => {
   t.is(result.buckets[0].count, 2);
   // match affine:page first
   t.deepEqual(result.buckets[0].hits.nodes[0].fields, {
-    workspaceId: [workspaceId],
+    workspaceId: [workspace.id],
     docId: [docId1],
+    blockId: [blockId3],
     content: ['hello world, this is a title'],
     flavour: ['affine:page'],
   });
@@ -626,11 +836,11 @@ test('should aggregate work', async t => {
     content: ['<b>hello</b> world, this is a title'],
   });
   t.deepEqual(result.buckets[0].hits.nodes[0]._source, {
-    workspaceId,
+    workspaceId: workspace.id,
     docId: docId1,
   });
   t.deepEqual(result.buckets[0].hits.nodes[1].fields, {
-    workspaceId: [workspaceId],
+    workspaceId: [workspace.id],
     docId: [docId1],
     blockId: [blockId1],
     content: ['hello world, this is a block'],
@@ -640,13 +850,13 @@ test('should aggregate work', async t => {
     content: ['<b>hello</b> world, this is a block'],
   });
   t.deepEqual(result.buckets[0].hits.nodes[1]._source, {
-    workspaceId,
+    workspaceId: workspace.id,
     docId: docId1,
   });
   t.deepEqual(result.buckets[1].key, docId2);
   t.is(result.buckets[1].count, 1);
   t.deepEqual(result.buckets[1].hits.nodes[0].fields, {
-    workspaceId: [workspaceId],
+    workspaceId: [workspace.id],
     docId: [docId2],
     blockId: [blockId2],
     content: ['hello world, this is a test block'],
@@ -656,9 +866,30 @@ test('should aggregate work', async t => {
     content: ['<b>hello</b> world, this is a test block'],
   });
   t.deepEqual(result.buckets[1].hits.nodes[0]._source, {
-    workspaceId,
+    workspaceId: workspace.id,
     docId: docId2,
   });
+});
+
+test('should throw error when field is not allowed in aggregate input', async t => {
+  await t.throwsAsync(
+    indexerService.aggregate({
+      table: SearchTable.block,
+      field: 'workspaceId',
+      query: {
+        type: SearchQueryType.all,
+      },
+      options: {
+        hits: {
+          fields: ['workspaceId', 'docId', 'blockId', 'content', 'flavour'],
+        },
+      },
+    }),
+    {
+      message:
+        'Invalid indexer input: aggregate field "workspaceId" is not allowed',
+    }
+  );
 });
 
 // #endregion

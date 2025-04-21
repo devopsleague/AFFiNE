@@ -72,3 +72,20 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+
+  indexer:
+    image: manticoresearch/manticore:${MANTICORE_VERSION:-9.2.14}
+    container_name: affine_indexer
+    restart: unless-stopped
+    ports:
+      - 9308:9308
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ${MANTICORE_DATA_LOCATION}:/var/lib/manticore

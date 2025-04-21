@@ -60,6 +60,28 @@ export class ManticoresearchProvider extends ElasticsearchProvider {
     this.logger.log(`created table ${table}, response: ${text}`);
   }
 
+  override async write(
+    table: SearchTable,
+    documents: Record<string, unknown>[],
+    options?: OperationOptions
+  ): Promise<void> {
+    if (table === SearchTable.block) {
+      documents = documents.map(document => ({
+        ...document,
+        // convert content `string[]` to `string`
+        // because manticoresearch full text search does not support `string[]`
+        content: Array.isArray(document.content)
+          ? document.content.join(' ')
+          : document.content,
+        // convert one item array to string in `blob`, `ref`, `ref_doc_id`
+        blob: this.#formatArrayValue(document.blob),
+        ref: this.#formatArrayValue(document.ref),
+        ref_doc_id: this.#formatArrayValue(document.ref_doc_id),
+      }));
+    }
+    await super.write(table, documents, options);
+  }
+
   /**
    * @see https://manual.manticoresearch.com/Data_creation_and_modification/Deleting_documents?static=true
    */
@@ -68,6 +90,7 @@ export class ManticoresearchProvider extends ElasticsearchProvider {
     query: Record<string, any>,
     options?: OperationOptions
   ): Promise<void> {
+    const start = Date.now();
     const url = new URL(`${this.config.endpoint}/bulk`);
     if (options?.refresh) {
       url.searchParams.set('refresh', 'true');
@@ -85,7 +108,7 @@ export class ManticoresearchProvider extends ElasticsearchProvider {
       'application/x-ndjson'
     );
     this.logger.log(
-      `deleted by query ${table} ${JSON.stringify(query)}, result: ${JSON.stringify(result)}`
+      `deleted by query ${table} ${JSON.stringify(query)} in ${Date.now() - start}ms, result: ${JSON.stringify(result)}`
     );
   }
 
@@ -170,7 +193,7 @@ export class ManticoresearchProvider extends ElasticsearchProvider {
     const data: Record<string, any> = {
       ...dsl,
       fields: undefined,
-      _source: [...dsl._source, ...dsl.fields],
+      _source: [...new Set([...dsl._source, ...dsl.fields])],
     };
 
     // https://manual.manticoresearch.com/Searching/Pagination#Pagination-of-search-results
@@ -185,8 +208,6 @@ export class ManticoresearchProvider extends ElasticsearchProvider {
         scroll: true,
       };
     }
-    // add id to sort and make sure scroll can work
-    data.sort.push('id');
 
     // if highlight provided, add all fields to highlight
     // "highlight":{"fields":{"title":{"pre_tags":["<b>"],"post_tags":["</b>"]}}
@@ -207,9 +228,9 @@ export class ManticoresearchProvider extends ElasticsearchProvider {
       (acc, field) => {
         let value = source[field];
         if (value !== null && value !== undefined && value !== '') {
-          // special handle `ref_doc_id` and `ref` as string[]
+          // special handle `ref_doc_id`, `ref`, `blob` as string[]
           if (
-            (field === 'ref_doc_id' || field === 'ref') &&
+            (field === 'ref_doc_id' || field === 'ref' || field === 'blob') &&
             typeof value === 'string' &&
             value.startsWith('["')
           ) {
@@ -251,5 +272,15 @@ export class ManticoresearchProvider extends ElasticsearchProvider {
       },
       {} as Record<string, unknown>
     );
+  }
+
+  #formatArrayValue(value: unknown | unknown[]) {
+    if (Array.isArray(value)) {
+      if (value.length === 1) {
+        return value[0];
+      }
+      return JSON.stringify(value);
+    }
+    return value;
   }
 }
