@@ -46,8 +46,6 @@ export class AffineDragHandleWidget extends WidgetComponent<RootBlockModel> {
   private readonly _reset = () => {
     this.dragging = false;
 
-    this.dragHoverRect = null;
-    this.anchorBlockId.value = null;
     this.isDragHandleHovered = false;
 
     this.pointerEventWatcher.reset();
@@ -112,6 +110,7 @@ export class AffineDragHandleWidget extends WidgetComponent<RootBlockModel> {
     this.isDragHandleHovered = false;
 
     this.anchorBlockId.value = null;
+    this.dragHoverRect = null;
     this.activeDragHandle = null;
 
     if (this.dragHandleContainer) {
@@ -176,10 +175,6 @@ export class AffineDragHandleWidget extends WidgetComponent<RootBlockModel> {
 
   override firstUpdated() {
     this.hide(true);
-    this._disposables.addFromEvent(this.host, 'pointerleave', () => {
-      this.hide();
-    });
-
     this._handleEventWatcher.watch();
 
     if (isInsidePageEditor(this.host)) {
