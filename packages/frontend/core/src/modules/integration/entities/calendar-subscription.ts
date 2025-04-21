@@ -8,12 +8,13 @@ import {
   onStart,
 } from '@toeverything/infra';
 import ICAL from 'ical.js';
-import { switchMap } from 'rxjs';
+import { EMPTY, mergeMap, switchMap, throttleTime } from 'rxjs';
 
 import type {
   CalendarStore,
   CalendarSubscriptionConfig,
 } from '../store/calendar';
+import { parseCalendarUrl } from '../utils/caleander-url-parser';
 
 export class CalendarSubscription extends Entity<{ url: string }> {
   constructor(private readonly store: CalendarStore) {
@@ -44,16 +45,26 @@ export class CalendarSubscription extends Entity<{ url: string }> {
   error$ = new LiveData<any>(null);
 
   update = effect(
+    throttleTime(30 * 1000),
     switchMap(() =>
       fromPromise(async () => {
-        const response = await fetch(this.url);
-        const cache = await response.text();
-        this.store.setSubscriptionCache(this.url, cache).catch(console.error);
+        const url = parseCalendarUrl(this.url);
+        const response = await fetch(url);
+        return await response.text();
       }).pipe(
+        mergeMap(value => {
+          this.store.setSubscriptionCache(this.url, value).catch(console.error);
+          return EMPTY;
+        }),
         catchErrorInto(this.error$),
         onStart(() => this.loading$.setValue(true)),
         onComplete(() => this.loading$.setValue(false))
       )
     )
   );
+
+  override dispose() {
+    super.dispose();
+    this.update.reset();
+  }
 }

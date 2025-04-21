@@ -18,6 +18,7 @@ import { IntegrationRefStore } from './store/integration-ref';
 import { ReadwiseStore } from './store/readwise';
 
 export { IntegrationService };
+export type { CalendarEvent } from './entities/calendar';
 export { CalendarIntegration } from './entities/calendar';
 export { CalendarSubscription } from './entities/calendar-subscription';
 export { IntegrationTypeIcon } from './views/icon';

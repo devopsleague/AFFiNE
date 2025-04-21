@@ -1913,6 +1913,8 @@
   "com.affine.integration.calendar.new-title": "Add a calendar by URL",
   "com.affine.integration.calendar.new-url-label": "Calendar URL",
   "com.affine.integration.calendar.new-error": "An error occurred while adding the calendar",
+  "com.affine.integration.calendar.all-day": "All day",
+  "com.affine.integration.calendar.new-doc": "New doc",
   "com.affine.audio.notes": "Notes",
   "com.affine.audio.transcribing": "Transcribing",
   "com.affine.audio.transcribe.non-owner.confirm.title": "Unable to retrieve AI results for others",

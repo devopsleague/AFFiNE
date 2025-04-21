@@ -401,7 +401,7 @@ __metadata:
     "@affine/templates": "workspace:*"
     "@affine/track": "workspace:*"
     "@blocksuite/affine": "workspace:*"
-    "@blocksuite/icons": "npm:^2.2.12"
+    "@blocksuite/icons": "npm:^2.2.13"
     "@dotlottie/player-component": "npm:^2.7.12"
     "@emotion/cache": "npm:^11.14.0"
     "@emotion/react": "npm:^11.14.0"
@@ -3971,7 +3971,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@blocksuite/icons@npm:^2.2.12":
+"@blocksuite/icons@npm:^2.2.12, @blocksuite/icons@npm:^2.2.13":
   version: 2.2.13
   resolution: "@blocksuite/icons@npm:2.2.13"
   peerDependencies:
