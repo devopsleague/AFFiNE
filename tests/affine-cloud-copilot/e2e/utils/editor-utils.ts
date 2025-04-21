@@ -319,7 +319,8 @@ export class EditorUtils {
   ) {
     // Create tag
     const tags = await page.getByTestId('explorer-tags');
-    await tags.getByTestId('explorer-bar-add-favorite-button').click();
+    await tags.hover();
+    await tags.getByTestId('explorer-bar-add-tag-button').click();
     const input = await page.getByTestId('rename-modal-input');
     await input.focus();
     await input.pressSequentially(tagName);

@@ -1111,7 +1111,6 @@ export const defaultKeyboardToolbarConfig: KeyboardToolbarConfig = {
         std.command
           .chain()
           .pipe(getSelectedModelsCommand)
-          .pipe(draftSelectedModelsCommand)
           .pipe(duplicateSelectedModelsCommand)
           .run();
       },

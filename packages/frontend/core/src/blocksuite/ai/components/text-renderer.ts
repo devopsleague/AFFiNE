@@ -358,6 +358,7 @@ export const createTextRenderer: (
 ) => AffineAIPanelWidgetConfig['answerRenderer'] = (host, options) => {
   return (answer, state) => {
     return html`<text-renderer
+      contenteditable="false"
       .host=${host}
       .answer=${answer}
       .state=${state}

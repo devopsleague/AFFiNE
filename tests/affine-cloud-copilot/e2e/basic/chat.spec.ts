@@ -1,3 +1,4 @@
+import { copyByKeyboard } from '@affine-test/kit/utils/keyboard';
 import { expect } from '@playwright/test';
 
 import { test } from '../base/base-test';
@@ -330,7 +331,6 @@ test.describe('AIBasic/Chat', () => {
     await utils.chatPanel.clearChat(page);
     await utils.chatPanel.waitForHistory(page, []);
   });
-
   test('should support copying answer', async ({
     loggedInPage: page,
     utils,
@@ -353,6 +353,58 @@ test.describe('AIBasic/Chat', () => {
     await page.getByText('Copied to clipboard').isVisible();
     await expect(async () => {
       const { content } = await utils.chatPanel.getLatestAssistantMessage(page);
+      const clipboardText = await page.evaluate(() =>
+        navigator.clipboard.readText()
+      );
+      expect(clipboardText).toBe(content);
+    }).toPass({ timeout: 5000 });
+  });
+
+  test('should support copying selected answer content', async ({
+    loggedInPage: page,
+    utils,
+  }) => {
+    await utils.chatPanel.openChatPanel(page);
+    await utils.chatPanel.makeChat(
+      page,
+      'Help me write a two-line love poem, return two paragraphs for me.'
+    );
+    await utils.chatPanel.waitForHistory(page, [
+      {
+        role: 'user',
+        content:
+          'Help me write a two-line love poem, return two paragraphs for me.',
+      },
+      {
+        role: 'assistant',
+        status: 'success',
+      },
+    ]);
+
+    await expect(async () => {
+      const { content, message } =
+        await utils.chatPanel.getLatestAssistantMessage(page);
+      // Select multiple rich text
+      const firstParagraph = await message
+        .locator('affine-paragraph rich-text v-text')
+        .first()
+        .boundingBox();
+      const lastParagraph = await message
+        .locator('affine-paragraph rich-text v-text')
+        .last()
+        .boundingBox();
+
+      if (firstParagraph && lastParagraph) {
+        await page.mouse.move(firstParagraph.x, firstParagraph.y);
+        await page.mouse.down();
+        await page.mouse.move(
+          lastParagraph.x + lastParagraph.width,
+          lastParagraph.y + lastParagraph.height
+        );
+        await page.mouse.up();
+      }
+
+      await copyByKeyboard(page);
       const clipboardText = await page.evaluate(() =>
         navigator.clipboard.readText()
       );

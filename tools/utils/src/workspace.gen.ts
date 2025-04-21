@@ -980,6 +980,11 @@ export const PackageList = [
     ],
   },
   {
+    location: 'packages/common/y-octo/node',
+    name: '@y-octo/node',
+    workspaceDependencies: [],
+  },
+  {
     location: 'packages/frontend/admin',
     name: '@affine/admin',
     workspaceDependencies: [
@@ -1291,6 +1296,7 @@ export type PackageName =
   | '@affine/graphql'
   | '@toeverything/infra'
   | '@affine/nbstore'
+  | '@y-octo/node'
   | '@affine/admin'
   | '@affine/android'
   | '@affine/electron'

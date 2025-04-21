@@ -325,7 +325,6 @@ export const builtinToolbarConfig = {
                 types: ['block', 'image'],
                 mode: 'highest',
               })
-              .pipe(draftSelectedModelsCommand)
               .pipe(duplicateSelectedModelsCommand)
               .run();
           },

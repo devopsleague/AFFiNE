@@ -10,7 +10,6 @@ export const pageDetailSkeletonStyle = style({
   alignItems: 'center',
 });
 export const blockSuiteEditorStyle = style({
-  maxWidth: cssVar('editorWidth'),
   margin: 'auto 2rem',
   padding: '0 24px',
   display: 'flex',
