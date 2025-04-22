@@ -241,6 +241,10 @@
       "type": "Object",
       "desc": "The config for the unsplash key."
     },
+    "exa": {
+      "type": "Object",
+      "desc": "The config for the exa web search key."
+    },
     "storage": {
       "type": "Object",
       "desc": "The config for the storage provider."

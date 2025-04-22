@@ -78,7 +78,11 @@ const CopilotProviderOptionsSchema = z.object({
 
 const CopilotChatOptionsSchema = CopilotProviderOptionsSchema.merge(
   PromptConfigStrictSchema
-).optional();
+)
+  .extend({
+    reasoning: z.boolean().optional(),
+  })
+  .optional();
 
 export type CopilotChatOptions = z.infer<typeof CopilotChatOptionsSchema>;
 

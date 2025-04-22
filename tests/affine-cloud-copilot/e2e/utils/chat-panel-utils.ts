@@ -37,9 +37,6 @@ export class ChatPanelUtils {
     }
     await page.getByTestId('sidebar-tab-chat').click();
     await expect(page.getByTestId('sidebar-tab-content-chat')).toBeVisible();
-    // TODO: remove this
-    // after network search is disabled by default
-    await this.disableNetworkSearch(page);
   }
 
   public static async closeChatPanel(page: Page) {

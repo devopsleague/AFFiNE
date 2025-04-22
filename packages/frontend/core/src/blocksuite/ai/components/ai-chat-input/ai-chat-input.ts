@@ -544,7 +544,7 @@ export class AIChatInput extends SignalWatcher(WithDisposable(LitElement)) {
         isRootSession: this.isRootSession,
         where: this.trackOptions.where,
         control: this.trackOptions.control,
-        networkSearch: this._isNetworkActive,
+        mustSearch: this._isNetworkActive,
       });
 
       for await (const text of stream) {

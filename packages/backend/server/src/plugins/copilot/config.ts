@@ -16,6 +16,9 @@ declare global {
       unsplash: ConfigItem<{
         key: string;
       }>;
+      exa: ConfigItem<{
+        key: string;
+      }>;
       storage: ConfigItem<StorageProviderConfig>;
       providers: {
         openai: ConfigItem<OpenAIConfig>;
@@ -66,6 +69,12 @@ defineModuleConfig('copilot', {
   },
   unsplash: {
     desc: 'The config for the unsplash key.',
+    default: {
+      key: '',
+    },
+  },
+  exa: {
+    desc: 'The config for the exa web search key.',
     default: {
       key: '',
     },

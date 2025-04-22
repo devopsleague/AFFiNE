@@ -1,5 +1,6 @@
 import {
   AnthropicProvider as AnthropicSDKProvider,
+  AnthropicProviderOptions,
   createAnthropic,
 } from '@ai-sdk/anthropic';
 import { AISDKError, generateText, streamText } from 'ai';
@@ -10,6 +11,7 @@ import {
   metrics,
   UserFriendlyError,
 } from '../../../base';
+import { createExaTool } from '../tools';
 import { CopilotProvider } from './provider';
 import {
   ChatMessageRole,
@@ -33,6 +35,10 @@ export class AnthropicProvider
   override readonly type = CopilotProviderType.Anthropic;
   override readonly capabilities = [CopilotCapability.TextToText];
   override readonly models = ['claude-3-7-sonnet-20250219'];
+
+  private readonly MAX_STEPS = 20;
+
+  private toolResults: string[] = [];
 
   #instance!: AnthropicSDKProvider;
 
@@ -120,15 +126,24 @@ export class AnthropicProvider
       const [system, msgs] = await chatToGPTMessage(messages);
 
       const modelInstance = this.#instance(model);
-      const { text } = await generateText({
+      const { text, reasoning } = await generateText({
         model: modelInstance,
         system,
         messages: msgs,
         abortSignal: options.signal,
+        providerOptions: {
+          anthropic: this.getAnthropicOptions(options),
+        },
+        tools: {
+          webSearch: createExaTool(this.AFFiNEConfig),
+        },
+        maxSteps: this.MAX_STEPS,
+        experimental_continueSteps: true,
       });
 
       if (!text) throw new Error('Failed to generate text');
-      return text.trim();
+
+      return reasoning ? `${reasoning}\n${text}` : text;
     } catch (e: any) {
       metrics.ai.counter('chat_text_errors').add(1, { model });
       throw this.handleError(e);
@@ -145,26 +160,83 @@ export class AnthropicProvider
     try {
       metrics.ai.counter('chat_text_stream_calls').add(1, { model });
       const [system, msgs] = await chatToGPTMessage(messages);
-
-      const { textStream } = streamText({
+      const { fullStream } = streamText({
         model: this.#instance(model),
         system,
         messages: msgs,
         abortSignal: options.signal,
+        providerOptions: {
+          anthropic: this.getAnthropicOptions(options),
+        },
+        tools: {
+          webSearch: createExaTool(this.AFFiNEConfig),
+        },
+        maxSteps: this.MAX_STEPS,
+        experimental_continueSteps: true,
       });
 
-      for await (const message of textStream) {
-        if (message) {
-          yield message;
-          if (options.signal?.aborted) {
-            await textStream.cancel();
+      for await (const message of fullStream) {
+        switch (message.type) {
+          case 'reasoning': {
+            yield message.textDelta;
             break;
           }
+          case 'tool-result': {
+            if (message.toolName === 'webSearch') {
+              this.toolResults.push(this.getWebSearchLinks(message.result));
+            }
+            break;
+          }
+          case 'step-finish': {
+            if (message.finishReason === 'tool-calls') {
+              yield this.toolResults.join('\n');
+              this.toolResults = [];
+            }
+            break;
+          }
+          case 'text-delta': {
+            yield message.textDelta;
+            break;
+          }
+          case 'error': {
+            const error = message.error as { type: string; message: string };
+            throw new Error(error.message);
+          }
+        }
+        if (options.signal?.aborted) {
+          await fullStream.cancel();
+          break;
         }
       }
     } catch (e: any) {
       metrics.ai.counter('chat_text_stream_errors').add(1, { model });
       throw this.handleError(e);
     }
+  }
+
+  private getAnthropicOptions(
+    options: CopilotChatOptions
+  ): AnthropicProviderOptions {
+    if (options?.reasoning) {
+      return {
+        thinking: {
+          type: 'enabled',
+          budgetTokens: 12000,
+        },
+      };
+    }
+    return {};
+  }
+
+  private getWebSearchLinks(
+    list: {
+      title: string | null;
+      url: string;
+    }[]
+  ): string {
+    const links = list.reduce((acc, result) => {
+      return acc + `\n[${result.title ?? result.url}](${result.url})\n`;
+    }, '\n');
+    return links + '\n';
   }
 }

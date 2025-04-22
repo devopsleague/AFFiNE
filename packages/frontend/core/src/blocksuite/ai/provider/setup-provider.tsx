@@ -82,28 +82,22 @@ export function setupAIProvider(
 
   //#region actions
   AIProvider.provide('chat', async options => {
-    const { input, contexts, attachments, networkSearch, retry } = options;
-    const disableSearch =
-      !!contexts?.files.length ||
-      !!contexts?.docs.length ||
-      !!attachments?.length;
-    const promptName =
-      networkSearch && !disableSearch
-        ? 'Search With AFFiNE AI'
-        : 'Chat With AFFiNE AI';
+    const { input, contexts, mustSearch } = options;
+
     const sessionId = await createSession({
-      promptName,
+      promptName: 'Chat With AFFiNE AI',
       ...options,
     });
-    if (!retry) {
-      await AIProvider.session?.updateSession(sessionId, promptName);
-    }
     return textToText({
       ...options,
       client,
       sessionId,
       content: input,
-      params: contexts,
+      params: {
+        docs: contexts?.docs,
+        files: contexts?.files,
+        searchMode: mustSearch ? 'MUST' : 'CAN',
+      },
     });
   });
 
