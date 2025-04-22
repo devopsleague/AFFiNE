@@ -1854,6 +1854,8 @@
   "com.affine.failed-to-send-request.description": "Unable to process your request to join <1/> <2>{{workspaceName}}</2> with <3>{{userEmail}}</3>, the workspace has reached its member limit. Please contact the workspace owner for available seats.",
   "com.affine.integration.name.readwise": "Readwise",
   "com.affine.integration.integrations": "Integrations",
+  "com.affine.integration.web-clipper.name": "Web Clipper",
+  "com.affine.integration.web-clipper.desc": "Import web pages to AFFiNE",
   "com.affine.integration.setting.description": "Elevate your AFFiNE experience with diverse add-ons and seamless integrations.",
   "com.affine.integration.setting.learn": "Learn how to develop a integration for AFFiNE",
   "com.affine.integration.readwise.name": "Readwise",

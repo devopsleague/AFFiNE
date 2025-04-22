@@ -7416,6 +7416,14 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.integration.integrations"](): string;
     /**
+      * `Web Clipper`
+      */
+    ["com.affine.integration.web-clipper.name"](): string;
+    /**
+      * `Import web pages to AFFiNE`
+      */
+    ["com.affine.integration.web-clipper.desc"](): string;
+    /**
       * `Elevate your AFFiNE experience with diverse add-ons and seamless integrations.`
       */
     ["com.affine.integration.setting.description"](): string;

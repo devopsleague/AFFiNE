@@ -14,9 +14,22 @@ import {
 
 export const IntegrationCard = ({
   className,
+  link,
   ...props
-}: HTMLAttributes<HTMLDivElement>) => {
-  return <div className={clsx(className, card)} {...props} />;
+}: HTMLAttributes<HTMLElement> & {
+  link?: string;
+}) => {
+  return link ? (
+    <a
+      className={clsx(className, card)}
+      {...props}
+      href={link}
+      target="_blank"
+      rel="noreferrer"
+    />
+  ) : (
+    <div className={clsx(className, card)} {...props} />
+  );
 };
 
 export const IntegrationCardIcon = ({

@@ -2,19 +2,26 @@ import type { FeatureFlagService } from '@affine/core/modules/feature-flag';
 import { IntegrationTypeIcon } from '@affine/core/modules/integration';
 import type { I18nString } from '@affine/i18n';
 import { TodayIcon } from '@blocksuite/icons/rc';
+import { Logo1Icon } from '@blocksuite/icons/rc';
 import { LiveData } from '@toeverything/infra';
 import type { ReactNode } from 'react';
 
 import { CalendarSettingPanel } from './calendar/setting-panel';
 import { ReadwiseSettingPanel } from './readwise/setting-panel';
 
-interface IntegrationCard {
+type IntegrationCard = {
   id: string;
   name: I18nString;
   desc: I18nString;
   icon: ReactNode;
-  setting: ReactNode;
-}
+} & (
+  | {
+      setting: ReactNode;
+    }
+  | {
+      link: string;
+    }
+);
 
 const INTEGRATION_LIST = [
   {
@@ -30,6 +37,13 @@ const INTEGRATION_LIST = [
     desc: 'com.affine.integration.calendar.desc',
     icon: <TodayIcon />,
     setting: <CalendarSettingPanel />,
+  },
+  {
+    id: 'web-clipper',
+    name: 'com.affine.integration.web-clipper.name',
+    desc: 'com.affine.integration.web-clipper.desc',
+    icon: <Logo1Icon />,
+    link: 'https://chromewebstore.google.com/detail/affine-web-clipper/mpbbkmbdpleomiogkbkkpfoljjpahmoi',
   },
 ] satisfies (IntegrationCard | false)[];
 

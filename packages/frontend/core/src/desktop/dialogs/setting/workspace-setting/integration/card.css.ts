@@ -13,6 +13,12 @@ export const card = style({
   flexDirection: 'column',
   background: cssVarV2.layer.background.overlayPanel,
   cursor: 'pointer',
+  color: 'unset',
+  selectors: {
+    '&:visited': {
+      color: 'unset',
+    },
+  },
 });
 export const cardHeader = style({
   display: 'flex',

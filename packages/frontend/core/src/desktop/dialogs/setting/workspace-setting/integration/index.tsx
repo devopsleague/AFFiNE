@@ -2,7 +2,7 @@ import { SettingHeader } from '@affine/component/setting-components';
 import { FeatureFlagService } from '@affine/core/modules/feature-flag';
 import { useI18n } from '@affine/i18n';
 import { useLiveData, useService } from '@toeverything/infra';
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useCallback, useMemo, useState } from 'react';
 
 import { SubPageProvider, useSubPageIsland } from '../../sub-page';
 import {
@@ -11,6 +11,7 @@ import {
   IntegrationCardHeader,
 } from './card';
 import { getAllowedIntegrationList$ } from './constants';
+import { type IntegrationItem } from './constants';
 import { list } from './index.css';
 
 export const IntegrationSetting = () => {
@@ -24,6 +25,12 @@ export const IntegrationSetting = () => {
       [featureFlagService]
     )
   );
+
+  const handleCardClick = useCallback((card: IntegrationItem) => {
+    if ('setting' in card && card.setting) {
+      setOpened(card.id);
+    }
+  }, []);
 
   return (
     <>
@@ -49,16 +56,22 @@ export const IntegrationSetting = () => {
               : t[item.desc.i18nKey]();
           return (
             <li key={item.id}>
-              <IntegrationCard onClick={() => setOpened(item.id)}>
+              <IntegrationCard
+                onClick={() => handleCardClick(item)}
+                link={'link' in item ? item.link : undefined}
+              >
                 <IntegrationCardHeader icon={item.icon} title={title} />
                 <IntegrationCardContent desc={desc} />
               </IntegrationCard>
-              <IntegrationSettingPage
-                open={opened === item.id}
-                onClose={() => setOpened(null)}
-              >
-                {item.setting}
-              </IntegrationSettingPage>
+
+              {'setting' in item && item.setting ? (
+                <IntegrationSettingPage
+                  open={opened === item.id}
+                  onClose={() => setOpened(null)}
+                >
+                  {item.setting}
+                </IntegrationSettingPage>
+              ) : null}
             </li>
           );
         })}
