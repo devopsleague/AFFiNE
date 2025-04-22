@@ -1,5 +1,5 @@
 import { Entity, LiveData, ObjectPool } from '@toeverything/infra';
-import dayjs, { type Dayjs } from 'dayjs';
+import { type Dayjs } from 'dayjs';
 import ICAL from 'ical.js';
 import { Observable, switchMap } from 'rxjs';
 
@@ -7,32 +7,9 @@ import type {
   CalendarStore,
   CalendarSubscriptionConfig,
 } from '../store/calendar';
+import type { CalendarEvent } from '../type';
 import { parseCalendarUrl } from '../utils/caleander-url-parser';
 import { CalendarSubscription } from './calendar-subscription';
-
-export type CalendarEvent = {
-  id: string;
-  url: string;
-  title: string;
-  startAt?: ICAL.Time;
-  endAt?: ICAL.Time;
-  allDay?: boolean;
-  date?: Dayjs;
-};
-
-type EventsByDateMap = Map<string, CalendarEvent[]>;
-
-const isAllDay = (current: Dayjs, start: Dayjs, end: Dayjs): boolean => {
-  if (current.isSame(start, 'day')) {
-    return (
-      start.hour() === 0 && start.minute() === 0 && !current.isSame(end, 'day')
-    );
-  } else if (current.isSame(end, 'day')) {
-    return false;
-  } else {
-    return true;
-  }
-};
 
 export class CalendarIntegration extends Entity {
   constructor(private readonly store: CalendarStore) {
@@ -76,65 +53,20 @@ export class CalendarIntegration extends Entity {
       subscriptions.find(sub => sub.url === url)
     );
   }
-  contents$ = LiveData.computed(get => {
-    const subscriptions = get(this.subscriptions$);
-    return subscriptions.map(sub => ({
-      url: sub.url,
-      content: get(sub.content$),
-    }));
-  });
   eventsByDateMap$ = LiveData.computed(get => {
-    const contents = get(this.contents$);
-    const eventsByDate: EventsByDateMap = new Map();
-
-    for (const { content, url } of contents) {
-      if (!content) continue;
-      const jCal = ICAL.parse(content);
-      const vCalendar = new ICAL.Component(jCal);
-      const vEvents = vCalendar.getAllSubcomponents('vevent');
-
-      for (const vEvent of vEvents) {
-        const event = new ICAL.Event(vEvent);
-        const calendarEvent: CalendarEvent = {
-          id: event.uid,
-          url,
-          title: event.summary,
-          startAt: event.startDate,
-          endAt: event.endDate,
-        };
-
-        // create index for each day of the event
-        if (event.startDate && event.endDate) {
-          const start = dayjs(event.startDate.toJSDate());
-          const end = dayjs(event.endDate.toJSDate());
-
-          let current = start;
-          while (current.isBefore(end) || current.isSame(end, 'day')) {
-            if (
-              current.isSame(end, 'day') &&
-              end.hour() === 0 &&
-              end.minute() === 0
-            ) {
-              break;
-            }
-            const todayEvent: CalendarEvent = { ...calendarEvent };
-            const dateKey = current.format('YYYY-MM-DD');
-            if (!eventsByDate.has(dateKey)) {
-              eventsByDate.set(dateKey, []);
-            }
-            todayEvent.allDay = isAllDay(current, start, end);
-            todayEvent.date = current;
-            todayEvent.id = `${event.uid}-${dateKey}`;
-            eventsByDate.get(dateKey)?.push(todayEvent);
-            current = current.add(1, 'day');
-          }
-        } else {
-          console.warn("event's start or end date is missing", event);
+    return get(this.subscriptions$)
+      .map(sub => get(sub.eventsByDateMap$))
+      .reduce((acc, map) => {
+        for (const [date, events] of map) {
+          acc.set(
+            date,
+            acc.has(date) ? [...(acc.get(date) ?? []), ...events] : [...events]
+          );
         }
-      }
-    }
-    return eventsByDate;
+        return acc;
+      }, new Map<string, CalendarEvent[]>());
   });
+
   eventsByDate$(date: Dayjs) {
     return this.eventsByDateMap$.map(eventsByDateMap => {
       const dateKey = date.format('YYYY-MM-DD');

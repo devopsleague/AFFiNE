@@ -6,13 +6,11 @@ export const card = style({
   borderRadius: 8,
   background: cssVarV2.layer.background.primary,
   border: `1px solid ${cssVarV2.layer.insideBorder.border}`,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 4,
 });
 export const divider = style({
   height: 8,
   display: 'flex',
+  margin: '4px 0',
   alignItems: 'center',
   justifyContent: 'center',
   ':before': {
@@ -26,6 +24,7 @@ export const header = style({
   display: 'flex',
   alignItems: 'center',
   gap: 8,
+  padding: '7px 0',
 });
 export const colorPickerTrigger = style({
   width: 24,
@@ -81,4 +80,22 @@ export const name = style({
   textOverflow: 'ellipsis',
   overflow: 'hidden',
   whiteSpace: 'nowrap',
+});
+
+export const allDayEventsContainer = style({
+  overflow: 'hidden',
+  display: 'grid',
+  gridTemplateRows: '1fr',
+  transition:
+    'grid-template-rows 0.4s cubic-bezier(.07,.83,.46,1), opacity 0.4s ease',
+  selectors: {
+    '&[data-collapsed="true"]': {
+      gridTemplateRows: '0fr',
+      opacity: 0,
+    },
+  },
+});
+
+export const allDayEventsContent = style({
+  overflow: 'hidden',
 });

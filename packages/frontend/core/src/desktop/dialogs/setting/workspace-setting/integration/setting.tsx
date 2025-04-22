@@ -47,7 +47,11 @@ export const IntegrationSettingItem = ({
   ...props
 }: IntegrationSettingItemProps) => {
   return (
-    <div className={clsx(styles.settingItem, className)} {...props}>
+    <div
+      data-has-desc={!!desc}
+      className={clsx(styles.settingItem, className)}
+      {...props}
+    >
       <div>
         {name && <h6 className={styles.settingName}>{name}</h6>}
         {desc && <p className={styles.settingDesc}>{desc}</p>}

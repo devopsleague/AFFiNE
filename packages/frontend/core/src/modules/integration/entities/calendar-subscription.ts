@@ -7,6 +7,7 @@ import {
   onComplete,
   onStart,
 } from '@toeverything/infra';
+import dayjs from 'dayjs';
 import ICAL from 'ical.js';
 import { EMPTY, mergeMap, switchMap, throttleTime } from 'rxjs';
 
@@ -14,7 +15,9 @@ import type {
   CalendarStore,
   CalendarSubscriptionConfig,
 } from '../store/calendar';
+import type { CalendarEvent, EventsByDateMap } from '../type';
 import { parseCalendarUrl } from '../utils/caleander-url-parser';
+import { isAllDay } from '../utils/is-all-day';
 
 export class CalendarSubscription extends Entity<{ url: string }> {
   constructor(private readonly store: CalendarStore) {
@@ -38,6 +41,65 @@ export class CalendarSubscription extends Entity<{ url: string }> {
     } catch {
       return '';
     }
+  });
+  eventsByDateMap$ = LiveData.computed(get => {
+    const content = get(this.content$);
+    const config = get(this.config$);
+
+    const map: EventsByDateMap = new Map();
+
+    if (!content || !config?.showEvents) return map;
+
+    const jCal = ICAL.parse(content);
+    const vCalendar = new ICAL.Component(jCal);
+    const vEvents = vCalendar.getAllSubcomponents('vevent');
+
+    for (const vEvent of vEvents) {
+      const event = new ICAL.Event(vEvent);
+      const calendarEvent: CalendarEvent = {
+        id: event.uid,
+        url: this.url,
+        title: event.summary,
+        startAt: event.startDate,
+        endAt: event.endDate,
+      };
+
+      // create index for each day of the event
+      if (event.startDate && event.endDate) {
+        const start = dayjs(event.startDate.toJSDate());
+        const end = dayjs(event.endDate.toJSDate());
+
+        let current = start;
+        while (current.isBefore(end) || current.isSame(end, 'day')) {
+          if (
+            current.isSame(end, 'day') &&
+            end.hour() === 0 &&
+            end.minute() === 0
+          ) {
+            break;
+          }
+          const todayEvent: CalendarEvent = { ...calendarEvent };
+          const dateKey = current.format('YYYY-MM-DD');
+          if (!map.has(dateKey)) {
+            map.set(dateKey, []);
+          }
+          todayEvent.allDay = isAllDay(current, start, end);
+          todayEvent.date = current;
+          todayEvent.id = `${event.uid}-${dateKey}`;
+          if (
+            config.showAllDayEvents ||
+            (!config.showAllDayEvents && !todayEvent.allDay)
+          ) {
+            map.get(dateKey)?.push(todayEvent);
+          }
+          current = current.add(1, 'day');
+        }
+      } else {
+        console.warn("event's start or end date is missing", event);
+      }
+    }
+
+    return map;
   });
 
   url = this.props.url;

@@ -42,6 +42,11 @@ export const settingItem = style({
   alignItems: 'flex-start',
   justifyContent: 'space-between',
   gap: 8,
+  selectors: {
+    '&[data-has-desc="false"]': {
+      padding: '5px 0',
+    },
+  },
 });
 
 export const settingName = style({
@@ -56,6 +61,7 @@ export const settingDesc = style({
   lineHeight: '20px',
   fontWeight: 400,
   color: cssVarV2.text.secondary,
+  marginTop: 2,
 });
 
 export const textRadioGroup = style({
