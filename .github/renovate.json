@@ -34,6 +34,23 @@
       "matchPackageNames": ["*", "!/^@blocksuite//", "!/oxlint/"]
     },
     {
+      "groupName": "all non-major dependencies",
+      "groupSlug": "all-minor-patch",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchManagers": [
+        "dockerfile",
+        "github-actions",
+        "helmv3",
+        "helm-values",
+        "gradle-wrapper",
+        "gradle",
+        "docker-compose",
+        "devcontainer",
+        "cocoapods",
+        "bundler"
+      ]
+    },
+    {
       "groupName": "rust toolchain",
       "matchManagers": ["custom.regex"],
       "matchDepNames": ["rustc"]

@@ -27,7 +27,12 @@ export function setupSpaceAIEntry(panel: AffineAIPanelWidget) {
       const selection = host.selection.find(TextSelection);
       if (selection && selection.isCollapsed() && selection.from.index === 0) {
         const block = host.view.getBlock(selection.blockId);
-        if (!block?.model?.text || block.model.text?.length > 0) return;
+        if (
+          !block?.model?.text ||
+          block.model.text?.length > 0 ||
+          block.model.flavour !== 'affine:paragraph'
+        )
+          return;
 
         event.preventDefault();
         handleInlineAskAIAction(host);

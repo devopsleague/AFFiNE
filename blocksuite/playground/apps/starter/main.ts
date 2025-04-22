@@ -8,6 +8,7 @@ import * as globalUtils from '@blocksuite/affine/global/utils';
 import * as services from '@blocksuite/affine/shared/services';
 import * as blockStd from '@blocksuite/affine/std';
 import * as store from '@blocksuite/affine/store';
+import * as affineModel from '@blocksuite/affine-model';
 import * as editor from '@blocksuite/integration-test';
 import { effects as presetsEffects } from '@blocksuite/integration-test/effects';
 
@@ -47,6 +48,7 @@ async function main() {
         services,
         editor,
         blockStd: blockStd,
+        affineModel: affineModel,
       }),
     });
     await prepareTestApp(collection);

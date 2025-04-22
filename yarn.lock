@@ -781,7 +781,7 @@ __metadata:
     husky: "npm:^9.1.7"
     lint-staged: "npm:^15.2.11"
     msw: "npm:^2.6.8"
-    oxlint: "npm:0.16.6"
+    oxlint: "npm:0.16.7"
     prettier: "npm:^3.4.2"
     semver: "npm:^7.6.3"
     serve: "npm:^14.2.4"
@@ -2375,6 +2375,7 @@ __metadata:
     "@blocksuite/affine-block-embed": "workspace:*"
     "@blocksuite/affine-block-surface": "workspace:*"
     "@blocksuite/affine-components": "workspace:*"
+    "@blocksuite/affine-ext-loader": "workspace:*"
     "@blocksuite/affine-model": "workspace:*"
     "@blocksuite/affine-shared": "workspace:*"
     "@blocksuite/affine-widget-slash-menu": "workspace:*"
@@ -2401,6 +2402,7 @@ __metadata:
     "@blocksuite/affine-block-embed": "workspace:*"
     "@blocksuite/affine-block-surface": "workspace:*"
     "@blocksuite/affine-components": "workspace:*"
+    "@blocksuite/affine-ext-loader": "workspace:*"
     "@blocksuite/affine-model": "workspace:*"
     "@blocksuite/affine-shared": "workspace:*"
     "@blocksuite/affine-widget-slash-menu": "workspace:*"
@@ -2424,6 +2426,7 @@ __metadata:
   resolution: "@blocksuite/affine-block-callout@workspace:blocksuite/affine/blocks/callout"
   dependencies:
     "@blocksuite/affine-components": "workspace:*"
+    "@blocksuite/affine-ext-loader": "workspace:*"
     "@blocksuite/affine-inline-preset": "workspace:*"
     "@blocksuite/affine-model": "workspace:*"
     "@blocksuite/affine-rich-text": "workspace:*"
@@ -2452,6 +2455,7 @@ __metadata:
   resolution: "@blocksuite/affine-block-code@workspace:blocksuite/affine/blocks/code"
   dependencies:
     "@blocksuite/affine-components": "workspace:*"
+    "@blocksuite/affine-ext-loader": "workspace:*"
     "@blocksuite/affine-gfx-turbo-renderer": "workspace:*"
     "@blocksuite/affine-inline-latex": "workspace:*"
     "@blocksuite/affine-inline-link": "workspace:*"
@@ -2483,6 +2487,7 @@ __metadata:
   dependencies:
     "@blocksuite/affine-block-database": "workspace:*"
     "@blocksuite/affine-components": "workspace:*"
+    "@blocksuite/affine-ext-loader": "workspace:*"
     "@blocksuite/affine-model": "workspace:*"
     "@blocksuite/affine-shared": "workspace:*"
     "@blocksuite/affine-widget-slash-menu": "workspace:*"
@@ -2508,6 +2513,7 @@ __metadata:
   resolution: "@blocksuite/affine-block-database@workspace:blocksuite/affine/blocks/database"
   dependencies:
     "@blocksuite/affine-components": "workspace:*"
+    "@blocksuite/affine-ext-loader": "workspace:*"
     "@blocksuite/affine-inline-preset": "workspace:*"
     "@blocksuite/affine-inline-reference": "workspace:*"
     "@blocksuite/affine-model": "workspace:*"
@@ -2540,6 +2546,7 @@ __metadata:
   resolution: "@blocksuite/affine-block-divider@workspace:blocksuite/affine/blocks/divider"
   dependencies:
     "@blocksuite/affine-components": "workspace:*"
+    "@blocksuite/affine-ext-loader": "workspace:*"
     "@blocksuite/affine-model": "workspace:*"
     "@blocksuite/affine-shared": "workspace:*"
     "@blocksuite/global": "workspace:*"
@@ -2563,6 +2570,7 @@ __metadata:
   dependencies:
     "@blocksuite/affine-block-surface": "workspace:*"
     "@blocksuite/affine-components": "workspace:*"
+    "@blocksuite/affine-ext-loader": "workspace:*"
     "@blocksuite/affine-gfx-text": "workspace:*"
     "@blocksuite/affine-inline-preset": "workspace:*"
     "@blocksuite/affine-model": "workspace:*"
@@ -2590,6 +2598,7 @@ __metadata:
   dependencies:
     "@blocksuite/affine-block-surface": "workspace:*"
     "@blocksuite/affine-components": "workspace:*"
+    "@blocksuite/affine-ext-loader": "workspace:*"
     "@blocksuite/affine-inline-reference": "workspace:*"
     "@blocksuite/affine-model": "workspace:*"
     "@blocksuite/affine-rich-text": "workspace:*"
@@ -2620,6 +2629,7 @@ __metadata:
   dependencies:
     "@blocksuite/affine-block-surface": "workspace:*"
     "@blocksuite/affine-components": "workspace:*"
+    "@blocksuite/affine-ext-loader": "workspace:*"
     "@blocksuite/affine-model": "workspace:*"
     "@blocksuite/affine-shared": "workspace:*"
     "@blocksuite/affine-widget-edgeless-toolbar": "workspace:*"
@@ -2648,6 +2658,7 @@ __metadata:
     "@blocksuite/affine-block-note": "workspace:*"
     "@blocksuite/affine-block-surface": "workspace:*"
     "@blocksuite/affine-components": "workspace:*"
+    "@blocksuite/affine-ext-loader": "workspace:*"
     "@blocksuite/affine-gfx-turbo-renderer": "workspace:*"
     "@blocksuite/affine-model": "workspace:*"
     "@blocksuite/affine-shared": "workspace:*"
@@ -2674,6 +2685,7 @@ __metadata:
   dependencies:
     "@blocksuite/affine-block-note": "workspace:*"
     "@blocksuite/affine-components": "workspace:*"
+    "@blocksuite/affine-ext-loader": "workspace:*"
     "@blocksuite/affine-inline-latex": "workspace:*"
     "@blocksuite/affine-model": "workspace:*"
     "@blocksuite/affine-rich-text": "workspace:*"
@@ -2703,6 +2715,7 @@ __metadata:
   resolution: "@blocksuite/affine-block-list@workspace:blocksuite/affine/blocks/list"
   dependencies:
     "@blocksuite/affine-components": "workspace:*"
+    "@blocksuite/affine-ext-loader": "workspace:*"
     "@blocksuite/affine-gfx-turbo-renderer": "workspace:*"
     "@blocksuite/affine-inline-preset": "workspace:*"
     "@blocksuite/affine-model": "workspace:*"
@@ -2732,6 +2745,7 @@ __metadata:
     "@blocksuite/affine-block-embed": "workspace:*"
     "@blocksuite/affine-block-surface": "workspace:*"
     "@blocksuite/affine-components": "workspace:*"
+    "@blocksuite/affine-ext-loader": "workspace:*"
     "@blocksuite/affine-fragment-doc-title": "workspace:*"
     "@blocksuite/affine-gfx-turbo-renderer": "workspace:*"
     "@blocksuite/affine-inline-preset": "workspace:*"
@@ -2762,6 +2776,7 @@ __metadata:
   resolution: "@blocksuite/affine-block-paragraph@workspace:blocksuite/affine/blocks/paragraph"
   dependencies:
     "@blocksuite/affine-components": "workspace:*"
+    "@blocksuite/affine-ext-loader": "workspace:*"
     "@blocksuite/affine-gfx-turbo-renderer": "workspace:*"
     "@blocksuite/affine-inline-preset": "workspace:*"
     "@blocksuite/affine-model": "workspace:*"
@@ -2965,6 +2980,17 @@ __metadata:
     rxjs: "npm:^7.8.1"
     shiki: "npm:^3.0.0"
     yjs: "npm:^13.6.21"
+    zod: "npm:^3.23.8"
+  languageName: unknown
+  linkType: soft
+
+"@blocksuite/affine-ext-loader@workspace:*, @blocksuite/affine-ext-loader@workspace:blocksuite/affine/ext-loader":
+  version: 0.0.0-use.local
+  resolution: "@blocksuite/affine-ext-loader@workspace:blocksuite/affine/ext-loader"
+  dependencies:
+    "@blocksuite/global": "workspace:*"
+    "@blocksuite/store": "workspace:*"
+    vitest: "npm:3.1.1"
     zod: "npm:^3.23.8"
   languageName: unknown
   linkType: soft
@@ -3823,6 +3849,7 @@ __metadata:
     "@blocksuite/affine-block-surface-ref": "workspace:*"
     "@blocksuite/affine-block-table": "workspace:*"
     "@blocksuite/affine-components": "workspace:*"
+    "@blocksuite/affine-ext-loader": "workspace:*"
     "@blocksuite/affine-fragment-doc-title": "workspace:*"
     "@blocksuite/affine-fragment-frame-panel": "workspace:*"
     "@blocksuite/affine-fragment-outline": "workspace:*"
@@ -3915,8 +3942,8 @@ __metadata:
   linkType: soft
 
 "@blocksuite/icons@npm:^2.2.12":
-  version: 2.2.12
-  resolution: "@blocksuite/icons@npm:2.2.12"
+  version: 2.2.13
+  resolution: "@blocksuite/icons@npm:2.2.13"
   peerDependencies:
     "@types/react": ^18.0.25
     change-case: 4.1.2
@@ -3927,7 +3954,7 @@ __metadata:
       optional: true
     react:
       optional: true
-  checksum: 10/b70edbb5b6aa6f4fdc77e66a87578fbd5b36fa971ac4f6c8d2387317c02b711479dee08923a7afba96f07af42c9857ecab1b9849a0e9e3c1c767d31d5daa9ab3
+  checksum: 10/2fed7131b423075ad647a0f4fa9b60b64cb21b00f76b5a9e607ef28c8579f5a532b813375bfd076c7360fb0c88630a59851b2b1e50b6b3882d3dcc7cca2c0e76
   languageName: node
   linkType: hard
 
@@ -10265,58 +10292,58 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oxlint/darwin-arm64@npm:0.16.6":
-  version: 0.16.6
-  resolution: "@oxlint/darwin-arm64@npm:0.16.6"
+"@oxlint/darwin-arm64@npm:0.16.7":
+  version: 0.16.7
+  resolution: "@oxlint/darwin-arm64@npm:0.16.7"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@oxlint/darwin-x64@npm:0.16.6":
-  version: 0.16.6
-  resolution: "@oxlint/darwin-x64@npm:0.16.6"
+"@oxlint/darwin-x64@npm:0.16.7":
+  version: 0.16.7
+  resolution: "@oxlint/darwin-x64@npm:0.16.7"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@oxlint/linux-arm64-gnu@npm:0.16.6":
-  version: 0.16.6
-  resolution: "@oxlint/linux-arm64-gnu@npm:0.16.6"
+"@oxlint/linux-arm64-gnu@npm:0.16.7":
+  version: 0.16.7
+  resolution: "@oxlint/linux-arm64-gnu@npm:0.16.7"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@oxlint/linux-arm64-musl@npm:0.16.6":
-  version: 0.16.6
-  resolution: "@oxlint/linux-arm64-musl@npm:0.16.6"
+"@oxlint/linux-arm64-musl@npm:0.16.7":
+  version: 0.16.7
+  resolution: "@oxlint/linux-arm64-musl@npm:0.16.7"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@oxlint/linux-x64-gnu@npm:0.16.6":
-  version: 0.16.6
-  resolution: "@oxlint/linux-x64-gnu@npm:0.16.6"
+"@oxlint/linux-x64-gnu@npm:0.16.7":
+  version: 0.16.7
+  resolution: "@oxlint/linux-x64-gnu@npm:0.16.7"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@oxlint/linux-x64-musl@npm:0.16.6":
-  version: 0.16.6
-  resolution: "@oxlint/linux-x64-musl@npm:0.16.6"
+"@oxlint/linux-x64-musl@npm:0.16.7":
+  version: 0.16.7
+  resolution: "@oxlint/linux-x64-musl@npm:0.16.7"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@oxlint/win32-arm64@npm:0.16.6":
-  version: 0.16.6
-  resolution: "@oxlint/win32-arm64@npm:0.16.6"
+"@oxlint/win32-arm64@npm:0.16.7":
+  version: 0.16.7
+  resolution: "@oxlint/win32-arm64@npm:0.16.7"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@oxlint/win32-x64@npm:0.16.6":
-  version: 0.16.6
-  resolution: "@oxlint/win32-x64@npm:0.16.6"
+"@oxlint/win32-x64@npm:0.16.7":
+  version: 0.16.7
+  resolution: "@oxlint/win32-x64@npm:0.16.7"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -27706,18 +27733,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oxlint@npm:0.16.6":
-  version: 0.16.6
-  resolution: "oxlint@npm:0.16.6"
+"oxlint@npm:0.16.7":
+  version: 0.16.7
+  resolution: "oxlint@npm:0.16.7"
   dependencies:
-    "@oxlint/darwin-arm64": "npm:0.16.6"
-    "@oxlint/darwin-x64": "npm:0.16.6"
-    "@oxlint/linux-arm64-gnu": "npm:0.16.6"
-    "@oxlint/linux-arm64-musl": "npm:0.16.6"
-    "@oxlint/linux-x64-gnu": "npm:0.16.6"
-    "@oxlint/linux-x64-musl": "npm:0.16.6"
-    "@oxlint/win32-arm64": "npm:0.16.6"
-    "@oxlint/win32-x64": "npm:0.16.6"
+    "@oxlint/darwin-arm64": "npm:0.16.7"
+    "@oxlint/darwin-x64": "npm:0.16.7"
+    "@oxlint/linux-arm64-gnu": "npm:0.16.7"
+    "@oxlint/linux-arm64-musl": "npm:0.16.7"
+    "@oxlint/linux-x64-gnu": "npm:0.16.7"
+    "@oxlint/linux-x64-musl": "npm:0.16.7"
+    "@oxlint/win32-arm64": "npm:0.16.7"
+    "@oxlint/win32-x64": "npm:0.16.7"
   dependenciesMeta:
     "@oxlint/darwin-arm64":
       optional: true
@@ -27738,7 +27765,7 @@ __metadata:
   bin:
     oxc_language_server: bin/oxc_language_server
     oxlint: bin/oxlint
-  checksum: 10/3055f3f61f9d68405c4b0aba5ed47d6cdcda5a580559494f07fe8e37e7df612279ff62d06b2990f2a81173bb0f303a83bf43ed3a2b868d9a167bd0608730313f
+  checksum: 10/4d7de31646c1b089c0bf3a120c7319d72755e6dfe77a687cd6e91eb3781497e36deec26d9fff2e0cec8d738d5061aeee0ce1c3209803fedda5d36a2703c1091f
   languageName: node
   linkType: hard
 

@@ -38,7 +38,7 @@ use uuid::Uuid;
 use crate::{
   error::CoreAudioError,
   pid::{audio_process_list, get_process_property},
-  tap_audio::{AggregateDevice, AudioTapStream},
+  tap_audio::{AggregateDeviceManager, AudioCaptureSession},
 };
 
 #[repr(C)]
@@ -88,12 +88,6 @@ static APPLICATION_STATE_CHANGED_LISTENER_BLOCKS: LazyLock<
 
 static NSRUNNING_APPLICATION_CLASS: LazyLock<Option<&'static AnyClass>> =
   LazyLock::new(|| AnyClass::get(c"NSRunningApplication"));
-
-static AVCAPTUREDEVICE_CLASS: LazyLock<Option<&'static AnyClass>> =
-  LazyLock::new(|| AnyClass::get(c"AVCaptureDevice"));
-
-static SCSTREAM_CLASS: LazyLock<Option<&'static AnyClass>> =
-  LazyLock::new(|| AnyClass::get(c"SCStream"));
 
 #[napi]
 pub struct Application {
@@ -445,10 +439,13 @@ impl TappableApplication {
   pub fn tap_audio(
     &self,
     audio_stream_callback: Arc<ThreadsafeFunction<Float32Array, (), Float32Array, true>>,
-  ) -> Result<AudioTapStream> {
-    // Use the new method that takes a TappableApplication directly
-    let mut device = AggregateDevice::new(self)?;
-    device.start(audio_stream_callback)
+  ) -> Result<AudioCaptureSession> {
+    // Use AggregateDeviceManager instead of AggregateDevice directly
+    // This provides automatic default device change detection
+    let mut device_manager = AggregateDeviceManager::new(self)?;
+    device_manager.start_capture(audio_stream_callback)?;
+    let boxed_manager = Box::new(device_manager);
+    Ok(AudioCaptureSession::new(boxed_manager))
   }
 }
 
@@ -743,45 +740,20 @@ impl ShareableContent {
   }
 
   #[napi]
-  pub fn check_recording_permissions(&self) -> Result<RecordingPermissions> {
-    let av_capture_class = AVCAPTUREDEVICE_CLASS
-      .as_ref()
-      .ok_or_else(|| Error::new(Status::GenericFailure, "AVCaptureDevice class not found"))?;
-
-    let sc_stream_class = SCSTREAM_CLASS
-      .as_ref()
-      .ok_or_else(|| Error::new(Status::GenericFailure, "SCStream class not found"))?;
-
-    let media_type = NSString::from_str("com.apple.avfoundation.avcapturedevice.built-in_audio");
-
-    let audio_status: i32 = unsafe {
-      msg_send![
-        *av_capture_class,
-        authorizationStatusForMediaType: &*media_type
-      ]
-    };
-
-    let screen_status: bool = unsafe { msg_send![*sc_stream_class, isScreenCaptureAuthorized] };
-
-    Ok(RecordingPermissions {
-      // AVAuthorizationStatusAuthorized = 3
-      audio: audio_status == 3,
-      screen: screen_status,
-    })
-  }
-
-  #[napi]
   pub fn tap_global_audio(
     excluded_processes: Option<Vec<&TappableApplication>>,
     audio_stream_callback: Arc<ThreadsafeFunction<Float32Array, (), Float32Array, true>>,
-  ) -> Result<AudioTapStream> {
-    let mut device = AggregateDevice::create_global_tap_but_exclude_processes(
-      &excluded_processes
-        .unwrap_or_default()
-        .iter()
-        .map(|app| app.object_id)
-        .collect::<Vec<_>>(),
-    )?;
-    device.start(audio_stream_callback)
+  ) -> Result<AudioCaptureSession> {
+    let excluded_object_ids = excluded_processes
+      .unwrap_or_default()
+      .iter()
+      .map(|app| app.object_id)
+      .collect::<Vec<_>>();
+
+    // Use the new AggregateDeviceManager for automatic device adaptation
+    let mut device_manager = AggregateDeviceManager::new_global(&excluded_object_ids)?;
+    device_manager.start_capture(audio_stream_callback)?;
+    let boxed_manager = Box::new(device_manager);
+    Ok(AudioCaptureSession::new(boxed_manager))
   }
 }

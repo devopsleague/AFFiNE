@@ -7,9 +7,6 @@ import { css, html, unsafeCSS } from 'lit';
 
 import { embedNoteContentStyles } from '../common/embed-note-content-styles.js';
 
-export const SYNCED_MIN_WIDTH = 370;
-export const SYNCED_MIN_HEIGHT = 64;
-
 export const blockStyles = css`
   affine-embed-synced-doc-block {
     --embed-padding: 24px;

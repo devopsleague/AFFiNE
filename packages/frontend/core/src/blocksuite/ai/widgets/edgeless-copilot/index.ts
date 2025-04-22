@@ -11,9 +11,10 @@ import {
 import { WidgetComponent, WidgetViewExtension } from '@blocksuite/affine/std';
 import { GfxControllerIdentifier } from '@blocksuite/affine/std/gfx';
 import {
+  autoPlacement,
   autoUpdate,
   computePosition,
-  flip,
+  limitShift,
   offset,
   shift,
   size,
@@ -112,40 +113,42 @@ export class EdgelessCopilotWidget extends WidgetComponent<RootBlockModel> {
   }
 
   private _updateCopilotPanel(referenceElement: HTMLElement) {
-    // @TODO: optimize
-    const viewport = this.gfx.viewport;
     const panel = this._copilotPanel;
     if (!panel) return;
+
+    const originMaxHeight = window.getComputedStyle(panel).maxHeight;
+
     autoUpdate(referenceElement, panel, () => {
       computePosition(referenceElement, panel, {
         placement: 'bottom-start',
         middleware: [
-          offset({
-            mainAxis: 4,
-          }),
-          flip({
-            mainAxis: true,
-            crossAxis: true,
-            flipAlignment: true,
-          }),
-          shift(() => {
-            const { left, top, width, height } = viewport;
-            return {
-              padding: 20,
-              crossAxis: true,
-              rootBoundary: {
-                x: left,
-                y: top,
-                width,
-                height: height - 100,
-              },
-            };
+          offset(4),
+          autoPlacement({
+            padding: 10,
+            allowedPlacements: [
+              'top-start',
+              'top-end',
+              'bottom-start',
+              'bottom-end',
+            ],
           }),
           size({
-            apply: ({ elements }) => {
-              const { height } = viewport;
-              elements.floating.style.maxHeight = `${height - 140}px`;
+            apply: ({ availableHeight }) => {
+              availableHeight -= 10;
+              panel.style.maxHeight =
+                originMaxHeight && originMaxHeight !== 'none'
+                  ? `min(${originMaxHeight}, ${availableHeight}px)`
+                  : `${availableHeight}px`;
             },
+          }),
+          shift({
+            padding: {
+              top: 10,
+              right: 10,
+              bottom: 150,
+              left: 10,
+            },
+            limiter: limitShift(),
           }),
         ],
       })

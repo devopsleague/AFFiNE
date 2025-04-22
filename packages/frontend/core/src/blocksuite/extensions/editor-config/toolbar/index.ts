@@ -1100,19 +1100,6 @@ export const createCustomToolbarExtension = (
     }),
 
     ToolbarModuleExtension({
-      id: BlockFlavourIdentifier('custom:affine:surface:embed-synced-doc'),
-      config: {
-        actions: [
-          embedSyncedDocToolbarConfig.actions,
-          createOpenDocActionGroup(EmbedSyncedDocBlockComponent, settings),
-          createEdgelessOpenDocActionGroup(EmbedSyncedDocBlockComponent),
-        ].flat(),
-
-        when: ctx => ctx.getSurfaceModels().length === 1,
-      },
-    }),
-
-    ToolbarModuleExtension({
       id: BlockFlavourIdentifier('custom:affine:reference'),
       config: {
         actions: [
