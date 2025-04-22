@@ -844,7 +844,7 @@ __metadata:
   dependencies:
     "@affine-tools/cli": "workspace:*"
     "@affine-tools/utils": "workspace:*"
-    "@googleapis/androidpublisher": "npm:^26.0.0"
+    "@googleapis/androidpublisher": "npm:^27.0.0"
     "@types/node": "npm:^22.0.0"
     typescript: "npm:^5.7.2"
   languageName: unknown
@@ -5949,12 +5949,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@googleapis/androidpublisher@npm:^26.0.0":
-  version: 26.0.0
-  resolution: "@googleapis/androidpublisher@npm:26.0.0"
+"@googleapis/androidpublisher@npm:^27.0.0":
+  version: 27.0.0
+  resolution: "@googleapis/androidpublisher@npm:27.0.0"
   dependencies:
     googleapis-common: "npm:^7.0.0"
-  checksum: 10/46cecb8e6eea137bbae22b63ba1ba9d32ff69e2f748f345074a1e06597832df94cd5f3484ce3945c1c8aa189b7cd86d8e3c41e7034c463c22ddf719acea3325d
+  checksum: 10/e18dadca4c51cb99b0fc4b876cef154b5ff18694898ce7ff3481a82f7d79e0f141a1726eabdc49b7f1e9fc28acff0f0a8310396db6f869a3a346b7430d7daf0b
   languageName: node
   linkType: hard
 
