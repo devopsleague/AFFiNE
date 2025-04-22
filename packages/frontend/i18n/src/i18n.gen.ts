@@ -7654,6 +7654,24 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.integration.calendar.new-doc"](): string;
     /**
+      * `Show calendar events`
+      */
+    ["com.affine.integration.calendar.show-events"](): string;
+    /**
+      * `Enabling this setting allows you to connect your calendar events to your Journal in AFFiNE`
+      */
+    ["com.affine.integration.calendar.show-events-desc"](): string;
+    /**
+      * `Show all day event`
+      */
+    ["com.affine.integration.calendar.show-all-day-events"](): string;
+    /**
+      * `Are you sure you want to unsubscribe "{{name}}"? Unsubscribing this account will remove its data from Journal.`
+      */
+    ["com.affine.integration.calendar.unsubscribe-content"](options: {
+        readonly name: string;
+    }): string;
+    /**
       * `Notes`
       */
     ["com.affine.audio.notes"](): string;
