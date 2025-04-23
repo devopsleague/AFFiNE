@@ -1227,3 +1227,5 @@ curl -v -X POST "localhost:9308/block/_search" -H 'Content-Type: application/jso
     }
   }
 }' | json
+
+curl -X POST http://localhost:9308/doc/_search -H 'Content-Type: application/json' -d '{"_source":["workspace_id","doc_id"],"sort":["_score",{"updated_at":"desc"},{"doc_id":"desc"},"id"],"query":{"match":{"workspace_id":{"query":"91484e67-3a05-45d0-bb07-fb01d5446c16"}}},"size":7,"options":{"scroll":true}}' | json
