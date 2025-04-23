@@ -15,6 +15,7 @@ import {
 } from '../../_common/chat-actions-handle';
 import {
   type ChatMessage,
+  type ChatStatus,
   isChatMessage,
 } from '../../components/ai-chat-messages';
 import { AIChatErrorRenderer } from '../../messages/error';
@@ -39,7 +40,7 @@ export class ChatMessageAssistant extends WithDisposable(ShadowlessElement) {
   accessor isLast: boolean = false;
 
   @property({ attribute: 'data-status', reflect: true })
-  accessor status: string = 'idle';
+  accessor status: ChatStatus = 'idle';
 
   @property({ attribute: false })
   accessor error: AIError | null = null;
@@ -64,7 +65,7 @@ export class ChatMessageAssistant extends WithDisposable(ShadowlessElement) {
       /\[\^\d+\]:{"type":"doc","docId":"[^"]+"}/.test(this.item.content);
 
     return html`<div class="user-info">
-      <chat-assistant-avatar></chat-assistant-avatar>
+      <chat-assistant-avatar .status=${this.status}></chat-assistant-avatar>
       ${isWithDocs
         ? html`<span class="message-info">with your docs</span>`
         : nothing}

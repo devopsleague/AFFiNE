@@ -161,16 +161,27 @@ export class ChatPanelAddPopover extends SignalWatcher(
   };
 
   private readonly _addFileChip = async () => {
-    const file = await openFileOrFiles();
-    if (!file) return;
-    if (file.size > 50 * 1024 * 1024) {
-      toast('You can only upload files less than 50MB');
-      return;
-    }
-    this.addChip({
-      file,
-      state: 'processing',
+    const files = await openFileOrFiles({
+      multiple: true,
     });
+    if (!files || files.length === 0) return;
+
+    const images = files.filter(file => file.type.startsWith('image/'));
+    if (images.length > 0) {
+      this.addImages(images);
+    }
+
+    const others = files.filter(file => !file.type.startsWith('image/'));
+    for (const file of others) {
+      if (file.size > 50 * 1024 * 1024) {
+        toast(`${file.name} is too large, please upload a file less than 50MB`);
+      } else {
+        await this.addChip({
+          file,
+          state: 'processing',
+        });
+      }
+    }
     this._track('file');
     this.abortController.abort();
   };
@@ -249,7 +260,10 @@ export class ChatPanelAddPopover extends SignalWatcher(
   accessor docDisplayConfig!: DocDisplayConfig;
 
   @property({ attribute: false })
-  accessor addChip!: (chip: ChatChip) => void;
+  accessor addChip!: (chip: ChatChip) => Promise<void>;
+
+  @property({ attribute: false })
+  accessor addImages!: (images: File[]) => void;
 
   @property({ attribute: false })
   accessor abortController!: AbortController;
@@ -459,8 +473,8 @@ export class ChatPanelAddPopover extends SignalWatcher(
     }
   }
 
-  private readonly _addDocChip = (meta: DocMeta) => {
-    this.addChip({
+  private readonly _addDocChip = async (meta: DocMeta) => {
+    await this.addChip({
       docId: meta.id,
       state: 'processing',
     });
@@ -469,8 +483,8 @@ export class ChatPanelAddPopover extends SignalWatcher(
     this.abortController.abort();
   };
 
-  private readonly _addTagChip = (tag: TagMeta) => {
-    this.addChip({
+  private readonly _addTagChip = async (tag: TagMeta) => {
+    await this.addChip({
       tagId: tag.id,
       state: 'processing',
     });
@@ -478,8 +492,8 @@ export class ChatPanelAddPopover extends SignalWatcher(
     this.abortController.abort();
   };
 
-  private readonly _addCollectionChip = (collection: CollectionMeta) => {
-    this.addChip({
+  private readonly _addCollectionChip = async (collection: CollectionMeta) => {
+    await this.addChip({
       collectionId: collection.id,
       state: 'processing',
     });

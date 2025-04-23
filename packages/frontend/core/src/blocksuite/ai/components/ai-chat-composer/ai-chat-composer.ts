@@ -29,6 +29,7 @@ import type {
   AINetworkSearchConfig,
   AIReasoningConfig,
 } from '../ai-chat-input';
+import { MAX_IMAGE_COUNT } from '../ai-chat-input/const';
 
 export class AIChatComposer extends SignalWatcher(
   WithDisposable(ShadowlessElement)
@@ -118,6 +119,7 @@ export class AIChatComposer extends SignalWatcher(
         .docDisplayConfig=${this.docDisplayConfig}
         .searchMenuConfig=${this.searchMenuConfig}
         .portalContainer=${this.portalContainer}
+        .addImages=${this.addImages}
       ></chat-panel-chips>
       <ai-chat-input
         .host=${this.host}
@@ -133,6 +135,7 @@ export class AIChatComposer extends SignalWatcher(
         .onChatSuccess=${this.onChatSuccess}
         .trackOptions=${this.trackOptions}
         .sideBarWidth=${this.sideBarWidth}
+        .addImages=${this.addImages}
       ></ai-chat-input>
       <div class="chat-panel-footer">
         ${InformationIcon()}
@@ -269,6 +272,13 @@ export class AIChatComposer extends SignalWatcher(
 
   private readonly updateChips = (chips: ChatChip[]) => {
     this.chips = chips;
+  };
+
+  private readonly addImages = (images: File[]) => {
+    const oldImages = this.chatContextValue.images;
+    this.updateContext({
+      images: [...oldImages, ...images].slice(0, MAX_IMAGE_COUNT),
+    });
   };
 
   private readonly _pollContextDocsAndFiles = async () => {

@@ -31,13 +31,12 @@ import {
   isTagChip,
 } from '../ai-chat-chips/utils';
 import type { ChatMessage } from '../ai-chat-messages';
+import { MAX_IMAGE_COUNT } from './const';
 import type {
   AIChatInputContext,
   AINetworkSearchConfig,
   AIReasoningConfig,
 } from './type';
-
-const MaximumImageCount = 32;
 
 function getFirstTwoLines(text: string) {
   const lines = text.split('\n');
@@ -273,6 +272,9 @@ export class AIChatInput extends SignalWatcher(WithDisposable(LitElement)) {
   @property({ attribute: false })
   accessor sideBarWidth: Signal<number | undefined> = signal(undefined);
 
+  @property({ attribute: false })
+  accessor addImages!: (images: File[]) => void;
+
   private get _isNetworkActive() {
     return (
       !!this.networkSearchConfig.visible.value &&
@@ -285,7 +287,7 @@ export class AIChatInput extends SignalWatcher(WithDisposable(LitElement)) {
   }
 
   private get _isImageUploadDisabled() {
-    return this.chatContextValue.images.length >= MaximumImageCount;
+    return this.chatContextValue.images.length >= MAX_IMAGE_COUNT;
   }
 
   override connectedCallback() {
@@ -456,7 +458,7 @@ export class AIChatInput extends SignalWatcher(WithDisposable(LitElement)) {
       if (item.kind === 'file' && item.type.indexOf('image') >= 0) {
         const blob = item.getAsFile();
         if (!blob) continue;
-        this._addImages([blob]);
+        this.addImages([blob]);
       }
     }
   };
@@ -483,13 +485,6 @@ export class AIChatInput extends SignalWatcher(WithDisposable(LitElement)) {
     this.reasoningConfig.setEnabled(!enable);
   };
 
-  private _addImages(images: File[]) {
-    const oldImages = this.chatContextValue.images;
-    this.updateContext({
-      images: [...oldImages, ...images].slice(0, MaximumImageCount),
-    });
-  }
-
   private readonly _handleImageRemove = (index: number) => {
     const oldImages = this.chatContextValue.images;
     const newImages = oldImages.filter((_, i) => i !== index);
@@ -504,7 +499,7 @@ export class AIChatInput extends SignalWatcher(WithDisposable(LitElement)) {
       multiple: true,
     });
     if (!images) return;
-    this._addImages(images);
+    this.addImages(images);
   };
 
   private readonly _onTextareaSend = async (e: MouseEvent | KeyboardEvent) => {
