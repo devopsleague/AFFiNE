@@ -39,7 +39,7 @@ const INTEGRATION_LIST = [
     setting: <CalendarSettingPanel />,
   },
   {
-    id: 'web-clipper',
+    id: 'web-clipper' as const,
     name: 'com.affine.integration.web-clipper.name',
     desc: 'com.affine.integration.web-clipper.desc',
     icon: <Logo1Icon />,
