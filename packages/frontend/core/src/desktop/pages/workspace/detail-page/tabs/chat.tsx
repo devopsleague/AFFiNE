@@ -41,8 +41,12 @@ export const EditorChatPanel = forwardRef(function EditorChatPanel(
     }
   }, [onLoad, ref]);
 
-  const { docDisplayConfig, searchMenuConfig, networkSearchConfig } =
-    useAIChatConfig();
+  const {
+    docDisplayConfig,
+    searchMenuConfig,
+    networkSearchConfig,
+    reasoningConfig,
+  } = useAIChatConfig();
 
   useEffect(() => {
     if (!editor || !editor.host) return;
@@ -67,6 +71,7 @@ export const EditorChatPanel = forwardRef(function EditorChatPanel(
       chatPanelRef.current.docDisplayConfig = docDisplayConfig;
       chatPanelRef.current.searchMenuConfig = searchMenuConfig;
       chatPanelRef.current.networkSearchConfig = networkSearchConfig;
+      chatPanelRef.current.reasoningConfig = reasoningConfig;
       chatPanelRef.current.extensions = editor.host.std
         .get(ViewExtensionManagerIdentifier)
         .get('preview-page');
@@ -98,6 +103,7 @@ export const EditorChatPanel = forwardRef(function EditorChatPanel(
     framework,
     networkSearchConfig,
     searchMenuConfig,
+    reasoningConfig,
   ]);
 
   return <div className={styles.root} ref={containerRef} />;

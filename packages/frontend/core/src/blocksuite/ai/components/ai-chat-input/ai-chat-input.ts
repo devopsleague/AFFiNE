@@ -8,6 +8,7 @@ import {
   CloseIcon,
   ImageIcon,
   PublishIcon,
+  ThinkingIcon,
 } from '@blocksuite/icons/lit';
 import { css, html, LitElement, nothing } from 'lit';
 import { property, query, state } from 'lit/decorators.js';
@@ -30,7 +31,11 @@ import {
   isTagChip,
 } from '../ai-chat-chips/utils';
 import type { ChatMessage } from '../ai-chat-messages';
-import type { AIChatInputContext, AINetworkSearchConfig } from './type';
+import type {
+  AIChatInputContext,
+  AINetworkSearchConfig,
+  AIReasoningConfig,
+} from './type';
 
 const MaximumImageCount = 32;
 
@@ -242,6 +247,9 @@ export class AIChatInput extends SignalWatcher(WithDisposable(LitElement)) {
   accessor networkSearchConfig!: AINetworkSearchConfig;
 
   @property({ attribute: false })
+  accessor reasoningConfig!: AIReasoningConfig;
+
+  @property({ attribute: false })
   accessor docDisplayConfig!: DocDisplayConfig;
 
   @property({ attribute: false })
@@ -259,16 +267,12 @@ export class AIChatInput extends SignalWatcher(WithDisposable(LitElement)) {
   private get _isNetworkActive() {
     return (
       !!this.networkSearchConfig.visible.value &&
-      !!this.networkSearchConfig.enabled.value &&
-      !this._isNetworkDisabled
+      !!this.networkSearchConfig.enabled.value
     );
   }
 
-  private get _isNetworkDisabled() {
-    return (
-      !!this.chatContextValue.images.length ||
-      !!this.chips.filter(chip => chip.state === 'finished').length
-    );
+  private get _isReasoningActive() {
+    return !!this.reasoningConfig.enabled.value;
   }
 
   private get _isClearDisabled() {
@@ -299,7 +303,6 @@ export class AIChatInput extends SignalWatcher(WithDisposable(LitElement)) {
     const { images, status } = this.chatContextValue;
     const hasImages = images.length > 0;
     const maxHeight = hasImages ? 272 + 2 : 200 + 2;
-    const uploadDisabled = this._isNetworkActive;
     return html` <div
       class="chat-panel-input"
       data-if-focused=${this.focused}
@@ -364,7 +367,6 @@ export class AIChatInput extends SignalWatcher(WithDisposable(LitElement)) {
               <div
                 class="chat-network-search"
                 data-testid="chat-network-search"
-                aria-disabled=${this._isNetworkDisabled}
                 data-active=${this._isNetworkActive}
                 @click=${this._toggleNetworkSearch}
                 @pointerdown=${stopPropagation}
@@ -373,12 +375,20 @@ export class AIChatInput extends SignalWatcher(WithDisposable(LitElement)) {
               </div>
             `
           : nothing}
+        <div
+          class="chat-network-search"
+          data-testid="chat-network-search"
+          data-active=${this._isReasoningActive}
+          @click=${this._toggleReasoning}
+          @pointerdown=${stopPropagation}
+        >
+          ${ThinkingIcon()}
+        </div>
         ${images.length < MaximumImageCount
           ? html`<div
               data-testid="chat-panel-input-image-upload"
               class="image-upload"
-              aria-disabled=${uploadDisabled}
-              @click=${uploadDisabled ? undefined : this._uploadImageFiles}
+              @click=${this._uploadImageFiles}
             >
               ${ImageIcon()}
             </div>`
@@ -457,11 +467,16 @@ export class AIChatInput extends SignalWatcher(WithDisposable(LitElement)) {
     e.preventDefault();
     e.stopPropagation();
 
-    if (this._isNetworkDisabled) {
-      return;
-    }
     const enable = this.networkSearchConfig.enabled.value;
     this.networkSearchConfig.setEnabled(!enable);
+  };
+
+  private readonly _toggleReasoning = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const enable = this.reasoningConfig.enabled.value;
+    this.reasoningConfig.setEnabled(!enable);
   };
 
   private _addImages(images: File[]) {
@@ -545,6 +560,7 @@ export class AIChatInput extends SignalWatcher(WithDisposable(LitElement)) {
         where: this.trackOptions.where,
         control: this.trackOptions.control,
         mustSearch: this._isNetworkActive,
+        reasoning: this._isReasoningActive,
       });
 
       for await (const text of stream) {

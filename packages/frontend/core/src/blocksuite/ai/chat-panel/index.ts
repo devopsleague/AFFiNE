@@ -17,7 +17,10 @@ import type {
   DocDisplayConfig,
   SearchMenuConfig,
 } from '../components/ai-chat-chips';
-import type { AINetworkSearchConfig } from '../components/ai-chat-input';
+import type {
+  AINetworkSearchConfig,
+  AIReasoningConfig,
+} from '../components/ai-chat-input';
 import { type HistoryMessage } from '../components/ai-chat-messages';
 import { AIProvider } from '../provider';
 import { extractSelectedContent } from '../utils/extract';
@@ -196,6 +199,9 @@ export class ChatPanel extends SignalWatcher(
 
   @property({ attribute: false })
   accessor networkSearchConfig!: AINetworkSearchConfig;
+
+  @property({ attribute: false })
+  accessor reasoningConfig!: AIReasoningConfig;
 
   @property({ attribute: false })
   accessor appSidebarConfig!: AppSidebarConfig;
@@ -415,6 +421,7 @@ export class ChatPanel extends SignalWatcher(
         .onHistoryCleared=${this._updateHistory}
         .isVisible=${this._isSidebarOpen}
         .networkSearchConfig=${this.networkSearchConfig}
+        .reasoningConfig=${this.reasoningConfig}
         .docDisplayConfig=${this.docDisplayConfig}
         .searchMenuConfig=${this.searchMenuConfig}
         .trackOptions=${{

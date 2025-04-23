@@ -134,6 +134,7 @@ declare global {
       sessionId?: string;
       isRootSession?: boolean;
       mustSearch?: boolean;
+      reasoning?: boolean;
       contexts?: {
         docs: AIDocContextOption[];
         files: AIFileContextOption[];

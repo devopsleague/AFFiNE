@@ -14,16 +14,29 @@ export const AIChatBlockPeekView = ({
   model,
   host,
 }: AIChatBlockPeekViewProps) => {
-  const { docDisplayConfig, searchMenuConfig, networkSearchConfig } =
-    useAIChatConfig();
+  const {
+    docDisplayConfig,
+    searchMenuConfig,
+    networkSearchConfig,
+    reasoningConfig,
+  } = useAIChatConfig();
+
   return useMemo(() => {
     const template = AIChatBlockPeekViewTemplate(
       model,
       host,
       docDisplayConfig,
       searchMenuConfig,
-      networkSearchConfig
+      networkSearchConfig,
+      reasoningConfig
     );
     return toReactNode(template);
-  }, [model, host, docDisplayConfig, searchMenuConfig, networkSearchConfig]);
+  }, [
+    model,
+    host,
+    docDisplayConfig,
+    searchMenuConfig,
+    networkSearchConfig,
+    reasoningConfig,
+  ]);
 };

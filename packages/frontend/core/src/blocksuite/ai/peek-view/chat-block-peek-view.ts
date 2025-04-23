@@ -28,7 +28,10 @@ import type {
   DocDisplayConfig,
   SearchMenuConfig,
 } from '../components/ai-chat-chips';
-import type { AINetworkSearchConfig } from '../components/ai-chat-input';
+import type {
+  AINetworkSearchConfig,
+  AIReasoningConfig,
+} from '../components/ai-chat-input';
 import type { ChatMessage } from '../components/ai-chat-messages';
 import { ChatMessagesSchema } from '../components/ai-chat-messages';
 import type { TextRendererOptions } from '../components/text-renderer';
@@ -519,6 +522,7 @@ export class AIChatBlockPeekView extends LitElement {
           control: 'chat-send',
         }}
         .portalContainer=${this.parentElement}
+        .reasoningConfig=${this.reasoningConfig}
       ></ai-chat-composer>
     </div> `;
   }
@@ -534,6 +538,9 @@ export class AIChatBlockPeekView extends LitElement {
 
   @property({ attribute: false })
   accessor networkSearchConfig!: AINetworkSearchConfig;
+
+  @property({ attribute: false })
+  accessor reasoningConfig!: AIReasoningConfig;
 
   @property({ attribute: false })
   accessor docDisplayConfig!: DocDisplayConfig;
@@ -568,7 +575,8 @@ export const AIChatBlockPeekViewTemplate = (
   host: EditorHost,
   docDisplayConfig: DocDisplayConfig,
   searchMenuConfig: SearchMenuConfig,
-  networkSearchConfig: AINetworkSearchConfig
+  networkSearchConfig: AINetworkSearchConfig,
+  reasoningConfig: AIReasoningConfig
 ) => {
   return html`<ai-chat-block-peek-view
     .blockModel=${blockModel}
@@ -576,5 +584,6 @@ export const AIChatBlockPeekViewTemplate = (
     .networkSearchConfig=${networkSearchConfig}
     .docDisplayConfig=${docDisplayConfig}
     .searchMenuConfig=${searchMenuConfig}
+    .reasoningConfig=${reasoningConfig}
   ></ai-chat-block-peek-view>`;
 };
