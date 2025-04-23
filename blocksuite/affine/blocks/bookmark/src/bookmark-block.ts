@@ -4,6 +4,7 @@ import {
 } from '@blocksuite/affine-components/caption';
 import type { BookmarkBlockModel } from '@blocksuite/affine-model';
 import { DocModeProvider } from '@blocksuite/affine-shared/services';
+import { normalizeUrlV2 } from '@blocksuite/affine-shared/utils';
 import { computed, type ReadonlySignal } from '@preact/signals-core';
 import { html } from 'lit';
 import { property, query } from 'lit/decorators.js';
@@ -27,12 +28,12 @@ export class BookmarkBlockComponent extends CaptionedBlockComponent<BookmarkBloc
 
   protected containerStyleMap!: ReturnType<typeof styleMap>;
 
+  get link() {
+    return normalizeUrlV2(this.model.props.url);
+  }
+
   open = () => {
-    let link = this.model.props.url;
-    if (!link.match(/^[a-zA-Z]+:\/\//)) {
-      link = 'https://' + link;
-    }
-    window.open(link, '_blank');
+    window.open(this.link, '_blank');
   };
 
   refreshData = () => {

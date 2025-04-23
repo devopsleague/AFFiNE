@@ -69,7 +69,7 @@ export function normalizeUrl(url: string) {
   if (isEmail) {
     return 'mailto:' + url;
   }
-  return 'http://' + url;
+  return 'https://' + url;
 }
 
 /**
@@ -155,4 +155,16 @@ export function getHostName(link: string) {
   } catch {
     return link;
   }
+}
+
+export function normalizeUrlV2(url: string) {
+  if (url.length === 0) return url;
+  if (URL.canParse(url)) return url;
+  if (!url.match(/^https?:\/\//)) {
+    const tmpUrl = `https://${url}`;
+    if (URL.canParse(tmpUrl)) {
+      return tmpUrl;
+    }
+  }
+  return url;
 }
