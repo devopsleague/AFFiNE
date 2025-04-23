@@ -5,7 +5,6 @@ import type {
   CopilotDocType,
 } from '@affine/graphql';
 import { SignalWatcher, WithDisposable } from '@blocksuite/affine/global/lit';
-import { NotificationProvider } from '@blocksuite/affine/shared/services';
 import type { EditorHost } from '@blocksuite/affine/std';
 import { ShadowlessElement } from '@blocksuite/affine/std';
 import type { Store } from '@blocksuite/affine/store';
@@ -66,9 +65,6 @@ export class AIChatComposer extends SignalWatcher(
   accessor updateContext!: (context: Partial<AIChatInputContext>) => void;
 
   @property({ attribute: false })
-  accessor onHistoryCleared: (() => void) | undefined;
-
-  @property({ attribute: false })
   accessor isVisible: Signal<boolean | undefined> = signal(false);
 
   @property({ attribute: false })
@@ -96,6 +92,9 @@ export class AIChatComposer extends SignalWatcher(
 
   @property({ attribute: false })
   accessor portalContainer: HTMLElement | null = null;
+
+  @property({ attribute: false })
+  accessor sideBarWidth: Signal<number | undefined> = signal(undefined);
 
   @state()
   accessor chips: ChatChip[] = [];
@@ -131,9 +130,9 @@ export class AIChatComposer extends SignalWatcher(
         .networkSearchConfig=${this.networkSearchConfig}
         .reasoningConfig=${this.reasoningConfig}
         .docDisplayConfig=${this.docDisplayConfig}
-        .cleanupHistories=${this._cleanupHistories}
         .onChatSuccess=${this.onChatSuccess}
         .trackOptions=${this.trackOptions}
+        .sideBarWidth=${this.sideBarWidth}
       ></ai-chat-input>
       <div class="chat-panel-footer">
         ${InformationIcon()}
@@ -352,36 +351,6 @@ export class AIChatComposer extends SignalWatcher(
   private readonly _abortPoll = () => {
     this._pollAbortController?.abort();
     this._pollAbortController = null;
-  };
-
-  private readonly _cleanupHistories = async () => {
-    const sessionId = await this.getSessionId();
-    const notification = this.host.std.getOptional(NotificationProvider);
-    if (!notification) return;
-    try {
-      if (
-        await notification.confirm({
-          title: 'Clear History',
-          message:
-            'Are you sure you want to clear all history? This action will permanently delete all content, including all chat logs and data, and cannot be undone.',
-          confirmText: 'Confirm',
-          cancelText: 'Cancel',
-        })
-      ) {
-        const actionIds = this.chatContextValue.messages
-          .filter(item => 'sessionId' in item)
-          .map(item => item.sessionId);
-        await AIProvider.histories?.cleanup(
-          this.doc.workspace.id,
-          this.doc.id,
-          [...(sessionId ? [sessionId] : []), ...(actionIds || [])]
-        );
-        notification.toast('History cleared');
-        this.onHistoryCleared?.();
-      }
-    } catch {
-      notification.toast('Failed to clear history');
-    }
   };
 
   private readonly _initComposer = async () => {

@@ -37,7 +37,8 @@ import { ChatPanelDocChip } from './components/ai-chat-chips/doc-chip';
 import { ChatPanelFileChip } from './components/ai-chat-chips/file-chip';
 import { ChatPanelTagChip } from './components/ai-chat-chips/tag-chip';
 import { AIChatComposer } from './components/ai-chat-composer';
-import { AIChatInput } from './components/ai-chat-input/ai-chat-input';
+import { AIChatInput } from './components/ai-chat-input';
+import { AIHistoryClear } from './components/ai-history-clear';
 import { effects as componentAiItemEffects } from './components/ai-item';
 import { AIScrollableTextRenderer } from './components/ai-scrollable-text-renderer';
 import { AskAIButton } from './components/ask-ai-button';
@@ -98,6 +99,7 @@ export function registerAIEffects() {
   customElements.define('ai-chat-input', AIChatInput);
   customElements.define('ai-chat-composer', AIChatComposer);
   customElements.define('chat-panel-chips', ChatPanelChips);
+  customElements.define('ai-history-clear', AIHistoryClear);
   customElements.define('chat-panel-add-popover', ChatPanelAddPopover);
   customElements.define(
     'chat-panel-candidates-popover',

@@ -502,6 +502,15 @@ export class AIChatBlockPeekView extends LitElement {
         <div class="new-chat-messages-container">
           ${this.CurrentMessages(currentChatMessages)}
         </div>
+        <div class="history-clear-container">
+          <ai-history-clear
+            .host=${this.host}
+            .doc=${this.host.doc}
+            .getSessionId=${this._getSessionId}
+            .onHistoryCleared=${this._onHistoryCleared}
+            .chatContextValue=${chatContext}
+          ></ai-history-clear>
+        </div>
       </div>
       <ai-chat-composer
         .host=${host}
@@ -510,7 +519,6 @@ export class AIChatBlockPeekView extends LitElement {
         .createSessionId=${this._createSessionId}
         .chatContextValue=${chatContext}
         .updateContext=${updateContext}
-        .onHistoryCleared=${this._onHistoryCleared}
         .isVisible=${this.isComposerVisible}
         .updateEmbeddingProgress=${this._updateEmbeddingProgress}
         .networkSearchConfig=${networkSearchConfig}

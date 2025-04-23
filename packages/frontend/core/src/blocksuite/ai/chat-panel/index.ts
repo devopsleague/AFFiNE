@@ -5,7 +5,6 @@ import { SignalWatcher, WithDisposable } from '@blocksuite/affine/global/lit';
 import type { EditorHost } from '@blocksuite/affine/std';
 import { ShadowlessElement } from '@blocksuite/affine/std';
 import type { ExtensionType, Store } from '@blocksuite/affine/store';
-import { HelpIcon } from '@blocksuite/icons/lit';
 import { type Signal, signal } from '@preact/signals-core';
 import { css, html, type PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
@@ -68,19 +67,10 @@ export class ChatPanel extends SignalWatcher(
       align-items: center;
       z-index: 1;
 
-      div:first-child {
+      .chat-panel-title-text {
         font-size: 14px;
         font-weight: 500;
         color: var(--affine-text-secondary-color);
-      }
-
-      div:last-child {
-        width: 24px;
-        height: 24px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
       }
 
       svg {
@@ -385,20 +375,20 @@ export class ChatPanel extends SignalWatcher(
 
     return html`<div class="chat-panel-container" style=${style}>
       <div class="chat-panel-title">
-        <div>
+        <div class="chat-panel-title-text">
           ${isEmbedding
             ? html`<span data-testid="chat-panel-embedding-progress"
                 >Embedding ${done}/${total}</span
               >`
             : 'AFFiNE AI'}
         </div>
-        <div
-          @click=${() => {
-            AIProvider.toggleGeneralAIOnboarding?.(true);
-          }}
-        >
-          ${HelpIcon()}
-        </div>
+        <ai-history-clear
+          .host=${this.host}
+          .doc=${this.doc}
+          .getSessionId=${this._getSessionId}
+          .onHistoryCleared=${this._updateHistory}
+          .chatContextValue=${this.chatContextValue}
+        ></ai-history-clear>
       </div>
       <chat-panel-messages
         ${ref(this._chatMessagesRef)}
@@ -418,7 +408,6 @@ export class ChatPanel extends SignalWatcher(
         .chatContextValue=${this.chatContextValue}
         .updateContext=${this.updateContext}
         .updateEmbeddingProgress=${this._updateEmbeddingProgress}
-        .onHistoryCleared=${this._updateHistory}
         .isVisible=${this._isSidebarOpen}
         .networkSearchConfig=${this.networkSearchConfig}
         .reasoningConfig=${this.reasoningConfig}
@@ -428,6 +417,7 @@ export class ChatPanel extends SignalWatcher(
           where: 'chat-panel',
           control: 'chat-send',
         }}
+        .sideBarWidth=${this._sidebarWidth}
       ></ai-chat-composer>
     </div>`;
   }

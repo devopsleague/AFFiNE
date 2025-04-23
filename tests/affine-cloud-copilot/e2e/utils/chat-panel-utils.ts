@@ -305,6 +305,20 @@ export class ChatPanelUtils {
     }
   }
 
+  public static async enableReasoning(page: Page) {
+    const reasoning = page.getByTestId('chat-reasoning');
+    if ((await reasoning.getAttribute('data-active')) === 'false') {
+      await reasoning.click();
+    }
+  }
+
+  public static async disableReasoning(page: Page) {
+    const reasoning = page.getByTestId('chat-reasoning');
+    if ((await reasoning.getAttribute('data-active')) === 'true') {
+      await reasoning.click();
+    }
+  }
+
   public static async isNetworkSearchEnabled(page: Page) {
     const networkSearch = await page.getByTestId('chat-network-search');
     return (await networkSearch.getAttribute('aria-disabled')) === 'false';
