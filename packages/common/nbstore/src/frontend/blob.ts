@@ -74,10 +74,11 @@ export class BlobFrontend {
     return this.sync.fullDownload(peerId, signal);
   }
 
-  private maxBlobSize = 1024 * 1024 * 100; // 100MB
   private readonly onReachedMaxBlobSizeCallbacks: Set<
     (byteSize: number) => void
   > = new Set();
+
+  maxBlobSize = 1024 * 1024 * 100; // 100MB
 
   setMaxBlobSize(max: number) {
     this.maxBlobSize = max;

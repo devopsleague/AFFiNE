@@ -48,6 +48,7 @@ export class Workspace extends Entity {
           },
           name: 'blob',
           readonly: false,
+          maxFileSize: this.engine.blob.maxBlobSize,
         },
         onLoadDoc: doc => this.engine.doc.connectDoc(doc),
         onLoadAwareness: awareness =>
