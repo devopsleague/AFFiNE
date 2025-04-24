@@ -7,6 +7,7 @@ import {
   TurboRendererConfigFactory,
   ViewportTurboRendererExtension,
 } from '@blocksuite/affine-gfx-turbo-renderer';
+import { firstValueFrom } from 'rxjs';
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { wait } from '../utils/common.js';
@@ -56,9 +57,8 @@ describe('viewport turbo renderer', () => {
     expect(renderer.optimizedBlockIds.length).toBe(0);
 
     renderer.viewport.zooming$.next(true);
-    await wait();
-
-    expect(renderer.state$.value).toBe('zooming');
+    const nextState = await firstValueFrom(renderer.state$);
+    expect(nextState).toBe('zooming');
 
     const canUseCache = renderer.canUseBitmapCache();
     expect(canUseCache).toBe(false);
