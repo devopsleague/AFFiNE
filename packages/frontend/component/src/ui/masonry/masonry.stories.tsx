@@ -268,7 +268,7 @@ export const MultiViewTransition = () => {
           gapY={10}
           style={{ width: '100%', height: '100%' }}
           paddingX={12}
-          paddingY={12}
+          paddingY={0}
           virtualScroll
           groupsGap={10}
           groupHeaderGapWithItems={10}

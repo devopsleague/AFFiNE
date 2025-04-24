@@ -149,10 +149,10 @@ export const calcSticky = (options: {
   const entries = Array.from(layoutMap.entries());
   const groupEntries = entries.filter(([_, layout]) => layout.type === 'group');
 
-  const res = groupEntries.find(([_, layout], index) => {
+  const res = groupEntries.find(([_, xywh], index) => {
     const next = groupEntries[index + 1];
-    return layout.y < scrollY && (!next || next[1].y > scrollY);
+    return xywh.y < scrollY && (!next || next[1].y > scrollY);
   });
 
-  return res ? res[0] : undefined;
+  return res ? res[0] : entries[0][0];
 };

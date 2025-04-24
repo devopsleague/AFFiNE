@@ -145,6 +145,11 @@ export const Masonry = ({
     setLayoutMap(layout);
     setHeight(height);
     updateSleepMap(layout);
+    if (stickyGroupHeader && rootRef.current) {
+      setStickyGroupId(
+        calcSticky({ scrollY: rootRef.current.scrollTop, layoutMap: layout })
+      );
+    }
   }, [
     collapsedGroups,
     columns,
@@ -157,6 +162,7 @@ export const Masonry = ({
     itemWidthMin,
     paddingX,
     paddingY,
+    stickyGroupHeader,
     updateSleepMap,
   ]);
 
@@ -203,6 +209,7 @@ export const Masonry = ({
             id: groupId,
             items,
             children,
+            className,
             Component,
             ...groupProps
           } = group;
@@ -213,6 +220,7 @@ export const Masonry = ({
             <Fragment key={groupId}>
               {/* group header */}
               <MasonryItem
+                className={clsx(styles.groupHeader, className)}
                 key={`header-${groupId}`}
                 id={groupId}
                 locateMode={locateMode}

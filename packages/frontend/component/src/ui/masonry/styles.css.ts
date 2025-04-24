@@ -9,6 +9,10 @@ export const root = style({
   },
 });
 
+export const groupHeader = style({
+  zIndex: 1,
+});
+
 export const stickyGroupHeader = style({
   zIndex: 1,
   position: 'absolute',
