@@ -63,7 +63,7 @@ export const Masonry = ({
   groupsGap = 0,
   groupHeaderGapWithItems = 0,
   stickyGroupHeader = true,
-  collapsedGroups = [],
+  collapsedGroups,
   columns,
   onGroupCollapse,
   ...props
@@ -78,6 +78,11 @@ export const Masonry = ({
   );
   const [stickyGroupId, setStickyGroupId] = useState<string | undefined>(
     undefined
+  );
+  const stickyGroupCollapsed = !!(
+    collapsedGroups &&
+    stickyGroupId &&
+    collapsedGroups.includes(stickyGroupId)
   );
 
   const groups = useMemo(() => {
@@ -135,7 +140,7 @@ export const Masonry = ({
       paddingY,
       groupsGap,
       groupHeaderGapWithItems,
-      collapsedGroups,
+      collapsedGroups: collapsedGroups ?? [],
     });
     setLayoutMap(layout);
     setHeight(height);
@@ -201,7 +206,8 @@ export const Masonry = ({
             Component,
             ...groupProps
           } = group;
-          const collapsed = collapsedGroups.includes(groupId);
+          const collapsed =
+            collapsedGroups && collapsedGroups.includes(groupId);
 
           return (
             <Fragment key={groupId}>
@@ -261,17 +267,14 @@ export const Masonry = ({
             height: stickyGroup.height,
           }}
           onClick={() =>
-            onGroupCollapse?.(
-              stickyGroup.id,
-              !collapsedGroups.includes(stickyGroup.id)
-            )
+            onGroupCollapse?.(stickyGroup.id, !stickyGroupCollapsed)
           }
         >
           {stickyGroup.Component ? (
             <stickyGroup.Component
               groupId={stickyGroup.id}
               itemCount={stickyGroup.items.length}
-              collapsed={collapsedGroups.includes(stickyGroup.id)}
+              collapsed={stickyGroupCollapsed}
             />
           ) : (
             stickyGroup.children

@@ -151,7 +151,7 @@ export const calcSticky = (options: {
 
   const res = groupEntries.find(([_, layout], index) => {
     const next = groupEntries[index + 1];
-    return layout.y < scrollY && next[1].y > scrollY;
+    return layout.y < scrollY && (!next || next[1].y > scrollY);
   });
 
   return res ? res[0] : undefined;
