@@ -129,13 +129,13 @@ export async function setupEditor(
   const appElement = await createEditor(collection, mode, extensions);
 
   return () => {
-    appElement.remove();
+    appElement?.remove();
     cleanup();
   };
 }
 
 export function cleanup() {
-  window.editor.remove();
+  window.editor?.remove();
 
   delete (window as any).collection;
 

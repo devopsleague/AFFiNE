@@ -31,7 +31,7 @@ describe('viewport turbo renderer', () => {
     return cleanup;
   });
 
-  afterEach(async () => cleanup?.());
+  afterEach(() => cleanup?.());
 
   test('should render 6 notes in viewport', async () => {
     addSampleNotes(doc, 6);
