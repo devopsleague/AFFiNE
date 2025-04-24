@@ -1016,11 +1016,17 @@ export const PackageList = [
     location: 'packages/common/nbstore',
     name: '@affine/nbstore',
     workspaceDependencies: [
+      'packages/common/reader',
       'packages/common/infra',
       'packages/common/error',
       'packages/common/graphql',
       'blocksuite/affine/all',
     ],
+  },
+  {
+    location: 'packages/common/reader',
+    name: '@affine/reader',
+    workspaceDependencies: ['blocksuite/affine/all'],
   },
   {
     location: 'packages/common/y-octo/node',
@@ -1350,6 +1356,7 @@ export type PackageName =
   | '@affine/graphql'
   | '@toeverything/infra'
   | '@affine/nbstore'
+  | '@affine/reader'
   | '@y-octo/node'
   | '@affine/admin'
   | '@affine/android'
