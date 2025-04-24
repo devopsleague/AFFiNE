@@ -1,13 +1,19 @@
-import type { MasonryItem, MasonryItemXYWH } from './type';
+import type { MasonryGroup, MasonryItem, MasonryItemXYWH } from './type';
 
 export const calcColumns = (
   totalWidth: number,
   itemWidth: number | 'stretch',
   itemWidthMin: number,
   gapX: number,
-  paddingX: number
+  paddingX: number,
+  columns?: number
 ) => {
   const availableWidth = totalWidth - paddingX * 2;
+
+  if (columns) {
+    const width = (availableWidth - (columns - 1) * gapX) / columns;
+    return { columns, width };
+  }
 
   if (itemWidth === 'stretch') {
     let columns = 1;
@@ -34,33 +40,81 @@ export const calcColumns = (
 };
 
 export const calcLayout = (
-  items: MasonryItem[],
+  groups: MasonryGroup[],
   options: {
+    totalWidth: number;
     columns: number;
     width: number;
     gapX: number;
     gapY: number;
     paddingX: number;
     paddingY: number;
+    groupsGap: number;
+    groupHeaderGapWithItems: number;
+    collapsedGroups: string[];
   }
 ) => {
-  const { columns, width, gapX, gapY, paddingX, paddingY } = options;
+  const {
+    totalWidth,
+    columns,
+    width,
+    gapX,
+    gapY,
+    paddingX,
+    paddingY,
+    groupsGap,
+    groupHeaderGapWithItems,
+    collapsedGroups,
+  } = options;
 
-  const layoutMap = new Map<MasonryItem['id'], MasonryItemXYWH>();
-  const heightStack = Array.from({ length: columns }, () => paddingY);
+  const layout = new Map<string, MasonryItemXYWH>();
+  let finalHeight = paddingY;
 
-  items.forEach(item => {
-    const minHeight = Math.min(...heightStack);
-    const minHeightIndex = heightStack.indexOf(minHeight);
-    const x = minHeightIndex * (width + gapX) + paddingX;
-    const y = minHeight + gapY;
-    heightStack[minHeightIndex] = y + item.height;
-    layoutMap.set(item.id, { x, y, w: width, h: item.height });
+  groups.forEach((group, index) => {
+    const heightStack = Array.from({ length: columns }, () => 0);
+    if (index !== 0) {
+      finalHeight += groupsGap;
+    }
+
+    // calculate group header
+    const groupHeaderLayout: MasonryItemXYWH = {
+      type: 'group',
+      x: paddingX,
+      y: finalHeight,
+      w: totalWidth - paddingX * 2,
+      h: group.height,
+    };
+    layout.set(group.id, groupHeaderLayout);
+
+    if (collapsedGroups.includes(group.id)) {
+      finalHeight += groupHeaderLayout.h;
+      return;
+    }
+
+    finalHeight += groupHeaderLayout.h + groupHeaderGapWithItems;
+    // calculate group items
+    group.items.forEach(item => {
+      const itemId = group.id ? `${group.id}:${item.id}` : item.id;
+      const minHeight = Math.min(...heightStack);
+      const minHeightIndex = heightStack.indexOf(minHeight);
+      const x = minHeightIndex * (width + gapX) + paddingX;
+      const y = minHeight + finalHeight;
+
+      heightStack[minHeightIndex] += item.height + gapY;
+      layout.set(itemId, {
+        type: 'item',
+        x,
+        y,
+        w: width,
+        h: item.height,
+      });
+    });
+
+    const groupHeight = Math.max(...heightStack) + paddingY;
+    finalHeight += groupHeight;
   });
 
-  const finalHeight = Math.max(...heightStack) + paddingY;
-
-  return { layout: layoutMap, height: finalHeight };
+  return { layout, height: finalHeight };
 };
 
 export const calcSleep = (options: {
@@ -84,4 +138,21 @@ export const calcSleep = (options: {
   });
 
   return sleepMap;
+};
+
+export const calcSticky = (options: {
+  scrollY: number;
+  layoutMap: Map<MasonryItem['id'], MasonryItemXYWH>;
+}) => {
+  const { scrollY, layoutMap } = options;
+  // find sticky group header
+  const entries = Array.from(layoutMap.entries());
+  const groupEntries = entries.filter(([_, layout]) => layout.type === 'group');
+
+  const res = groupEntries.find(([_, layout], index) => {
+    const next = groupEntries[index + 1];
+    return layout.y < scrollY && next[1].y > scrollY;
+  });
+
+  return res ? res[0] : undefined;
 };
