@@ -207,7 +207,7 @@ export const Masonry = ({
             <Fragment key={groupId}>
               {/* group header */}
               <MasonryItem
-                key={groupId}
+                key={`header-${groupId}`}
                 id={groupId}
                 locateMode={locateMode}
                 xywh={layoutMap.get(groupId)}
